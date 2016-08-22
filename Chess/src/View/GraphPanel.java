@@ -355,8 +355,13 @@ public class GraphPanel extends JPanel implements MouseListener {
 				if(x>xx && x<(xx+60)){
 					yy = set[i].getGraphCordY();
 					if(y>yy && y<(yy+60)){
-						this.MarkedPawnId = i;
-						this.MyBoard.checkMove(i);
+						if(i !=this.MarkedPawnId){
+							this.MarkedPawnId = i;
+							this.MyBoard.checkMove(i);
+						}else{
+							this.MarkedPawnId = -1;
+							this.MyBoard.resetMarkedFieldBoard();
+						}
 						this.repaint();
 						return;
 					}

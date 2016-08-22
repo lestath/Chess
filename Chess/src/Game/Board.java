@@ -166,13 +166,22 @@ public class Board {
 			case Pawn.PAWN :
 				this.checkPawnMove(p);
 			break;
+			case Pawn.ROCK :
+				this.checkRockMove(p);
+			break;
+			case Pawn.BISHOP:
+				this.checkBishopMove(p);
+			break;
+			case Pawn.QUEEN:
+				this.checkQueenMove(p);
+			break;
 		}
 	}
 	
 	/**
 	 * Metoda resetująca tablicę dostępnych ruchów
 	 */
-	private void resetMarkedFieldBoard(){
+	public void resetMarkedFieldBoard(){
 		for(int i=0;i<8;i++){
 			for(int j=0;j<8;j++){
 				this.MarkedFieldBoard[i][j]=0;
@@ -262,6 +271,151 @@ public class Board {
 		    }
 		}
 	}
+	
+	/**
+	 * Metoda sprawdzająca ruchy wieży
+	 * @param p
+	 * 			Referencja na pionek
+	 */
+	private void checkRockMove(Pawn p){
+		this.checkVertical(p);
+		this.checkHorizontal(p);
+	}
+	
+	/**
+	 * Metoda sprawdzająca ruchy gońca
+	 * @param p
+	 * 			Referencja na pionek
+	 */
+	private void checkBishopMove(Pawn p){
+		this.checkLeftSlant(p);
+		this.checkRightSlant(p);
+	}
+	
+	/**
+	 * Metoda sprawdzająca ruchy królowej(lub Hetman - zwał jak zwał :) )
+	 * @param p
+	 * 			Referencja na pionek
+	 */
+	private void checkQueenMove(Pawn p){
+		this.checkHorizontal(p);
+		this.checkVertical(p);
+		this.checkLeftSlant(p);
+		this.checkRightSlant(p);
+	}
+	
+	/**
+	 * Metoda podrzędna sprawdzająca ruch w pionie
+	 * @param p
+	 * 			Referencja na pionek
+	 */
+	private void checkVertical(Pawn p){
+		int i;
+		for(i=p.getY()+1;i<8;i++){ // sprawdzenie w dół szachownicy
+			if(this.LogicBoard[p.getX()][i]==-1){
+				this.MarkedFieldBoard[p.getX()][i]=GraphPanel.GREEN_DOT;
+			}else if(isIdInOponentSet(this.LogicBoard[p.getX()][i])){
+				this.MarkedFieldBoard[p.getX()][i]=GraphPanel.RED_DOT;
+				break;
+			}else break;
+		}
+		
+		for(i=p.getY()-1;i>=0;i--){ // sprawdzenie w górę szachownicy
+			if(this.LogicBoard[p.getX()][i]==-1){
+				this.MarkedFieldBoard[p.getX()][i]=GraphPanel.GREEN_DOT;
+			}else if(isIdInOponentSet(this.LogicBoard[p.getX()][i])){
+				this.MarkedFieldBoard[p.getX()][i]=GraphPanel.RED_DOT;
+				break;
+			}else break;
+		}
+		
+	}
+	
+	/**
+	 * Metoda podrzędna sprawdzająca ruch w poziomie
+	 * @param p
+	 * 			Referencja na pionek
+	 */
+	private void checkHorizontal(Pawn p){
+		int i;
+		for(i=p.getX()+1;i<8;i++){ // sprawdzenie w prawą stronę szachownicy
+			if(this.LogicBoard[i][p.getY()]==-1){
+				this.MarkedFieldBoard[i][p.getY()]=GraphPanel.GREEN_DOT;
+			}else if(isIdInOponentSet(this.LogicBoard[i][p.getY()])){
+				this.MarkedFieldBoard[i][p.getY()]=GraphPanel.RED_DOT;
+				break;
+			}else break;
+		}
+		
+		for(i=p.getX()-1;i>=0;i--){ // sprawdzenie w lewą szachownicy
+			if(this.LogicBoard[i][p.getY()]==-1){
+				this.MarkedFieldBoard[i][p.getY()]=GraphPanel.GREEN_DOT;
+			}else if(isIdInOponentSet(this.LogicBoard[i][p.getY()])){
+				this.MarkedFieldBoard[i][p.getY()]=GraphPanel.RED_DOT;
+				break;
+			}else break;
+		}
+	}
+	
+	/**
+	 * Metoda podrzędna sprawdzająca ruch po lewym skosie
+	 * @param p
+	 * 			Referencja na pionek
+	 */
+	private void checkLeftSlant(Pawn p){
+		int j = 0;
+		int x,y;
+		while(j<2){
+			if(j==1){
+				x=p.getX()-1;
+				y=p.getY()-1;
+			}else{
+				x=p.getX()+1;
+				y=p.getY()+1;
+			}
+			while((x<8 && x>=0)&& (y<8 && y>=0)){ 
+				if(this.LogicBoard[x][y]==-1){
+					this.MarkedFieldBoard[x][y]=GraphPanel.GREEN_DOT;
+				}else if(isIdInOponentSet(this.LogicBoard[x][y])){
+					this.MarkedFieldBoard[x][y]=GraphPanel.RED_DOT;
+					break;
+				}else break;
+				if(j==1){x= x-1; y=y-1;}else{x=x+1;y=y+1;}
+			}
+			j++;
+		}
+		
+	}
+	
+	/**
+	 * Metoda podrzędna sprawdzająca ruch po prawym skosie
+	 * @param p
+	 * 			Referencja na pionek
+	 */
+	private void checkRightSlant(Pawn p){
+		int j = 0;
+		int x,y;
+		while(j<2){
+			if(j==1){
+				x=p.getX()+1;
+				y=p.getY()-1;
+			}else{
+				x=p.getX()-1;
+				y=p.getY()+1;
+			}
+			while((x<8 && x>=0)&& (y<8 && y>=0)){ 
+				if(this.LogicBoard[x][y]==-1){
+					this.MarkedFieldBoard[x][y]=GraphPanel.GREEN_DOT;
+				}else if(isIdInOponentSet(this.LogicBoard[x][y])){
+					this.MarkedFieldBoard[x][y]=GraphPanel.RED_DOT;
+					break;
+				}else break;
+				if(j==1){x= x+1; y=y-1;}else{x=x-1;y=y+1;}
+			}
+			j++;
+		}
+	}
+	
 	
 	/**
 	 * Metoda sprawdza czy pionek o podanym identyfikatorze znajduje się w zbiorze przeciwnika
