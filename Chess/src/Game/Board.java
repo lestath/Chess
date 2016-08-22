@@ -1,5 +1,7 @@
 package Game;
 
+import View.GraphPanel;
+
 /**
  * 
  * Klasa reprezentująca szachownicę
@@ -11,12 +13,14 @@ public class Board {
 		public static final int BLACK_ON_BOTTOM=1;
 		
 	private int[][] LogicBoard; // tablica szachownicy
+	private int[][] MarkedFieldBoard; // tablica do oznaczania czy pionek może ruszyć się na dane pole
 	private Pawn[] WhitePawnSet; // zestaw białych pionków
 	private Pawn[] BlackPawnSet; // zestaw czarnych pionków
 	private int Bottom; //flaga wskazująca któore pionki na dole
 	
 	public Board(){
 		this.LogicBoard = new int[8][8];
+		this.MarkedFieldBoard = new int[8][8];
 		this.WhitePawnSet = new Pawn[16];
 		this.BlackPawnSet = new Pawn[16];
 		
@@ -55,6 +59,7 @@ public class Board {
 		for(int i=0;i<8;i++){
 			for(int j=0;j<8;j++){
 				this.LogicBoard[i][j]=-1;
+				this.MarkedFieldBoard[i][j]=0;
 			}
 		}
 		if(whichonbtm==Board.BLACK_ON_BOTTOM){
@@ -110,7 +115,7 @@ public class Board {
 		}
 		this.LogicBoard[set[id].getX()][set[id].getY()]=-1;
 		set[id].setCords(this.calculateOponentCord(x,false),this.calculateOponentCord(y,true));
-		this.LogicBoard[set[id].getX()][set[id].getY()]=id;
+		this.LogicBoard[set[id].getX()][set[id].getY()]=set[id].getId();
 	}
 	
 	/**
@@ -131,9 +136,154 @@ public class Board {
 		}
 		this.LogicBoard[set[id].getX()][set[id].getY()]=-1;
 		set[id].setCords(x, y);
-		this.LogicBoard[x][y]=id;
+		this.LogicBoard[x][y]=set[id].getId();
+		this.resetMarkedFieldBoard();
+		set[id].setMoveCounter(set[id].getMoveCounter()+1);
 	}
 	
+	/**
+	 * Metoda sprawdzająca ruch pionka o o podanym identyfikatorze
+	 * @param index
+	 * 			Indeks pionka w zestawie
+	 * 				
+	 */
+	public void checkMove(int index){
+		this.resetMarkedFieldBoard(); // zresetowanie planszy oznaczającej
+		Pawn p;
+		if(this.Bottom==Board.WHITE_ON_BOTTOM){
+			p = this.WhitePawnSet[index];
+		}else{
+			p= this.BlackPawnSet[index];
+		}
+		
+		switch(p.getStatus()){
+			case Pawn.HORSE :
+				this.checkHorseMove(p);
+			break;
+			case Pawn.KING :
+				this.checkKingMove(p);
+			break;
+			case Pawn.PAWN :
+				this.checkPawnMove(p);
+			break;
+		}
+	}
+	
+	/**
+	 * Metoda resetująca tablicę dostępnych ruchów
+	 */
+	private void resetMarkedFieldBoard(){
+		for(int i=0;i<8;i++){
+			for(int j=0;j<8;j++){
+				this.MarkedFieldBoard[i][j]=0;
+			}
+		}
+	}
+	
+	/**
+	 * Metoda sprawdza ruch skoczka (sprawdzenie polega na oznaczeniu pól tablicy MarkedFieldBoard w odpowiedni sposób)
+	 * @param p
+	 * 			Referencja na pionek do sprawdzenia
+	 */
+	private void checkHorseMove(Pawn p){
+		int x,y;
+		int i,j;
+		for(i = -2;i<3;i++){
+			for(j=-2;j<3;j++){
+				if( (i!=0) && (j!=0) && (Math.abs(i)!=Math.abs(j)) ){
+					x = p.getX()+i;
+					y=p.getY()+j;
+					if(x>=0 && x<8 && y>=0 && y<8){
+						if(this.LogicBoard[x][y]==-1){
+								this.MarkedFieldBoard[x][y]=GraphPanel.GREEN_DOT;
+						}else{
+							if(this.isIdInOponentSet(this.LogicBoard[x][y])){
+								this.MarkedFieldBoard[x][y]=GraphPanel.RED_DOT;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	//TODO Sprawdzenie czy nie ma bicia na pole na które chce ruszyć król 
+	/**
+	 * Metoda sprawdzająca ruchy króla
+	 * @param p
+	 * 			Referencja na pionek
+	 */
+	private void checkKingMove(Pawn p){
+		int x,y;
+		for(int i = -1;i<2;i++ ){
+			for(int j=-1;j<2;j++){
+				if(!(j==0 && i==0)){
+					x = p.getX()+i;
+					y=p.getY()+j;
+					if(x>=0 && x<8 && y>=0 && y<8){
+						if(this.LogicBoard[x][y]==-1){
+								this.MarkedFieldBoard[x][y]=GraphPanel.GREEN_DOT;
+						}else{
+							if(this.isIdInOponentSet(this.LogicBoard[x][y])){
+								this.MarkedFieldBoard[x][y]=GraphPanel.RED_DOT;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Metoda sprawdzająca ruch piona
+	 * @param p
+	 * 			Referencja na pionek
+	 */
+	private void checkPawnMove(Pawn p){
+		int x,y;
+		int j;
+		if(p.getMoveCounter()!=0) j = -1; else j = -2; 
+		for(int i=-1;i<2;i++){
+			x = p.getX()+i;
+			y=p.getY()+j;
+			if(x>=0 && x<8 && y>=0 && y<8){
+				if(i==0){
+					if(this.LogicBoard[x][y]==-1){
+						if(j==-2){
+							if(this.LogicBoard[x][y+1]!=-1)return;
+							this.MarkedFieldBoard[x][y+1]=GraphPanel.GREEN_DOT;
+						}
+						this.MarkedFieldBoard[x][y]=GraphPanel.GREEN_DOT;
+					}
+				}else{
+					if(j==-2){y=y+1;}
+					if(this.isIdInOponentSet(this.LogicBoard[x][y]))this.MarkedFieldBoard[x][y]=GraphPanel.RED_DOT;
+				}
+		    }
+		}
+	}
+	
+	/**
+	 * Metoda sprawdza czy pionek o podanym identyfikatorze znajduje się w zbiorze przeciwnika
+	 * @param id
+	 * 			Identyfikator pionka
+	 * @return
+	 * 			Zwraca true, jeżeli pionek o tym identyfikatorze należy do przeciwnika
+	 */
+	private boolean isIdInOponentSet(int id){
+		Pawn[] set;
+		if(this.Bottom==Board.WHITE_ON_BOTTOM){
+			set = this.BlackPawnSet;
+		}else{
+			set = this.WhitePawnSet;
+		}
+		for(int i=0;i<set.length;i++){
+			if(set[i].getId()==id){
+				return true;
+			}
+		}
+		return false;
+	}
 
 	/**
 	 * Metoda wyliczająca odwrotną pozycję pionka dla szachownicy przeciwnika
@@ -148,6 +298,18 @@ public class Board {
 		if(yflag)return ((-cord)+(this.LogicBoard.length-1));
 		return cord;
 	}
+	
+	/**
+	 * MEtoda przlicza koordynat logiczny na rzeczywisty na panelu graficznym
+	 * @param cord
+	 * 				Koordynat Logiczny
+	 * @return
+	 * 				Zwraca koordynat rzeczywisty
+	 */
+	public int calcLogicToGraph(int cord){
+		return cord*62+50;
+	}
+	
 	
 	public int[][] getLogicBoard() {
 		return LogicBoard;
@@ -184,6 +346,14 @@ public class Board {
 
 	public void setBottom(int bottom) {
 		Bottom = bottom;
+	}
+
+	public int[][] getMarkedFieldBoard() {
+		return MarkedFieldBoard;
+	}
+
+	public void setMarkedFieldBoard(int[][] markedFieldBoard) {
+		MarkedFieldBoard = markedFieldBoard;
 	}
 	
 	

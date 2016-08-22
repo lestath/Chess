@@ -32,6 +32,7 @@ public class Pawn {
 	private int Status; // wskazuje na status pionka 0 - pionek,1-wieża,2-konik,3-biskup,4-król,5-królowa
 	private int Color; // wskazuje na kolor pionka
 	private boolean Active; // flaga aktywności pionka w grze (jeżeli false to został zbity)
+	private int MoveCounter; // licznik ruchów pionka
 	
 	public Pawn(int id,int status,int color,int cx,int cy){
 		this.Id = id;
@@ -44,6 +45,7 @@ public class Pawn {
 		this.GraphCordY = 0;
 		this.Active = true;
 		this.chosePict(status);
+		this.MoveCounter = 0;
 	}
 	
 	public int getId() {
@@ -172,5 +174,13 @@ public class Pawn {
 
 	public void setActive(boolean active) {
 		Active = active;
+	}
+
+	public int getMoveCounter() {
+		return MoveCounter;
+	}
+
+	public void setMoveCounter(int moveCounter) {
+		MoveCounter = moveCounter;
 	}
 }

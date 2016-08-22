@@ -31,10 +31,14 @@ public class GraphPanel extends JPanel implements MouseListener {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	public static final int GREEN_DOT = 1; // stała zielonej kropki oznaczającej
+	public static final int RED_DOT = 2; // stała czerownej kropki oznaczającej
 	private GameFrame Frame;
 	private BufferedImage Background; // tło wejściowe
 	private BufferedImage BackgroundBoardInvert; // odwrócone tło przedstawiające szachownicę
 	private BufferedImage BackgroundBoard; // tło przedstawiające szachownicę
+	private BufferedImage RedDotImg; // obrazek czerownej kropki
+	private BufferedImage GreenDotImg; // obrazek zielonej kropki
 	private JScrollPane Scroll; // panel scrollowany na tabelę z rankingiem 
 	private JScrollPane Scroll2; // panel scrollowany na tabelę ze stołami 
 	private JTable RankTab; // tabela rankingowa graczy;
@@ -59,6 +63,8 @@ public class GraphPanel extends JPanel implements MouseListener {
 		    this.Background = ImageIO.read(getClass().getResource("/img/background2.png"));
 		    this.BackgroundBoard = ImageIO.read(getClass().getResource("/img/board.jpg"));
 		    this.BackgroundBoardInvert = ImageIO.read(getClass().getResource("/img/board_invert.jpg"));
+		    this.RedDotImg = ImageIO.read(getClass().getResource("/img/dot_red.png"));
+		    this.GreenDotImg = ImageIO.read(getClass().getResource("/img/dot_green.png"));
 		} catch (IOException e) {
 		    e.printStackTrace();
 		}
@@ -229,6 +235,7 @@ public class GraphPanel extends JPanel implements MouseListener {
 					this.MyBoard.getWhitePawnSet()[i].getGraphCordY()
 				);
 		}
+		this.drawCheckField(g2d);
 	}
 	
 	/**
@@ -273,6 +280,44 @@ public class GraphPanel extends JPanel implements MouseListener {
 		}
 	}
 	
+	/**
+	 * Metoda stawiają ca kropki oznaczające w odpowiedniej konfiguracji
+	 * @param g2d
+	 * 			Komponent graficzny
+	 */
+	public void drawCheckField(Graphics2D g2d){
+		if(this.MyBoard!= null){
+			int[][] markedtab=this.MyBoard.getMarkedFieldBoard();
+			// oznaczenie kropek
+				for(int i=0;i<markedtab.length;i++){
+					for(int j=0;j<markedtab.length;j++){
+						this.putdot(markedtab[i][j],g2d,this.MyBoard.calcLogicToGraph(i),this.MyBoard.calcLogicToGraph(j));
+					}
+				}
+		}
+	}
+	
+	/**
+	 *  Metoda rysująca orazek kropki(znacznika pola) na panelu graficznym
+	 * @param color	
+	 * 			Kolor kropki green,red
+	 * @param g2d
+	 * 			Referencja płótna
+	 * @param x
+	 * 			współrzędna X
+	 * @param y
+	 * 			współrzędna Y
+	 */
+	public void putdot(int dotcolor,Graphics2D g2d,int x, int y){
+		if(dotcolor==GraphPanel.GREEN_DOT){
+			if(this.GreenDotImg!=null)
+			g2d.drawImage(this.GreenDotImg,null, x, y);
+		}else if(dotcolor==GraphPanel.RED_DOT){
+			if(this.RedDotImg!=null)
+			g2d.drawImage(this.RedDotImg,null, x, y);
+		}
+	}
+	
 	
 	public Board getMyBoard() {
 		return MyBoard;
@@ -311,6 +356,8 @@ public class GraphPanel extends JPanel implements MouseListener {
 					yy = set[i].getGraphCordY();
 					if(y>yy && y<(yy+60)){
 						this.MarkedPawnId = i;
+						this.MyBoard.checkMove(i);
+						this.repaint();
 						return;
 					}
 				}
