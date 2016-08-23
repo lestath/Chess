@@ -22,6 +22,7 @@ public class Pack implements Serializable{
 	private int X; // współrzędna przesunięcia x
 	private int Y; // współrzedna przesunięcia Y
 	private boolean Check; // flaga oznaczająca wystapienie szacha
+	private int CheckPawnId;// identyfikator pionka szachującego
 	
 	public Pack(String msg){
 		this.Message = msg;
@@ -29,6 +30,7 @@ public class Pack implements Serializable{
 		this.setPlayers(null);
 		this.setColor(0);
 		this.Check = false;
+		this.CheckPawnId = -1;
 	}
 	
 	
@@ -122,6 +124,16 @@ public class Pack implements Serializable{
 
 	public void setCheck(boolean check) {
 		Check = check;
+	}
+
+
+	public int getCheckPawnId() {
+		return CheckPawnId;
+	}
+
+
+	public void setCheckPawnId(int checkPawnId) {
+		CheckPawnId = checkPawnId;
 	}
 	
 	

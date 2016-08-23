@@ -389,9 +389,10 @@ public class GraphPanel extends JPanel implements MouseListener {
 						set[this.MarkedPawnId].getX(), 
 						set[this.MarkedPawnId].getY()
 						);
-				if(this.MyBoard.checkCheck()){ // sprawdzenie czy jest szach
+				if(this.MyBoard.checkCheck(true)){ // sprawdzenie czy jest szach
 					this.Frame.setMsg("Szach",Color.GREEN);
 					pck.setCheck(true);
+					pck.setCheckPawnId(this.MyBoard.getCheckPawnID());
 				}
 				this.Frame.getMyClient().sendPack(pck);
 				this.MarkedPawnId = -1;
