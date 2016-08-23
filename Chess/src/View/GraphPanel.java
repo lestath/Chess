@@ -152,6 +152,11 @@ public class GraphPanel extends JPanel implements MouseListener {
 		this.Scroll.setVisible(false);
 	}
 	
+	/**
+	 * Metoda wyświetlająca tabelę rankingową na podstawie przekazanej tabeli graczy
+	 * @param players
+	 * 				Referencja na tablicę graczy
+	 */
 	public void showRanking(Player[] players){
 		if(players==null)return;
 		int i=0; 
@@ -224,16 +229,20 @@ public class GraphPanel extends JPanel implements MouseListener {
 	 */
 	private void showActualBoard(Graphics2D g2d){
 		for(int i=0;i<16;i++){
-			g2d.drawImage(
-				this.MyBoard.getBlackPawnSet()[i].getImg(),null,
-				this.MyBoard.getBlackPawnSet()[i].getGraphCordX(),
-				this.MyBoard.getBlackPawnSet()[i].getGraphCordY()
-			);
-			g2d.drawImage(
-					this.MyBoard.getWhitePawnSet()[i].getImg(),null,
-					this.MyBoard.getWhitePawnSet()[i].getGraphCordX(),
-					this.MyBoard.getWhitePawnSet()[i].getGraphCordY()
+			if(this.MyBoard.getBlackPawnSet()[i].isActive()){
+				g2d.drawImage(
+					this.MyBoard.getBlackPawnSet()[i].getImg(),null,
+					this.MyBoard.getBlackPawnSet()[i].getGraphCordX(),
+					this.MyBoard.getBlackPawnSet()[i].getGraphCordY()
 				);
+			}
+			if(this.MyBoard.getWhitePawnSet()[i].isActive()){
+				g2d.drawImage(
+						this.MyBoard.getWhitePawnSet()[i].getImg(),null,
+						this.MyBoard.getWhitePawnSet()[i].getGraphCordX(),
+						this.MyBoard.getWhitePawnSet()[i].getGraphCordY()
+					);
+			}
 		}
 		this.drawCheckField(g2d);
 	}
@@ -247,7 +256,7 @@ public class GraphPanel extends JPanel implements MouseListener {
 	public void startGame(int bottom){
 		this.prepareTableToGame();
 		if(this.MyBoard==null){
-			this.MyBoard = new Board();
+			this.MyBoard = new Board(this);
 		}
 		this.MyBoard.initBoard(bottom);
 		this.GameStarted = true;
@@ -351,6 +360,7 @@ public class GraphPanel extends JPanel implements MouseListener {
 			set = this.MyBoard.getBlackPawnSet();
 		}
 		for(int i=0;i<16;i++){
+			if(set[i].isActive() && set[i].isAllowMove()){
 			 xx = set[i].getGraphCordX();
 				if(x>xx && x<(xx+60)){
 					yy = set[i].getGraphCordY();
@@ -366,25 +376,43 @@ public class GraphPanel extends JPanel implements MouseListener {
 						return;
 					}
 				}
-			
+			}
 		}
 		
 		if(this.MarkedPawnId!=-1){
-			this.MyBoard.MyMove(this.MarkedPawnId,
+			if(this.MyBoard.MyMove(this.MarkedPawnId,
 					set[this.MarkedPawnId].getLogicCord(x),
 					set[this.MarkedPawnId].getLogicCord(y)
-			);
-			pck = new Pack("MAKE_MOVE");
-			pck.setMove(this.MarkedPawnId,
-					set[this.MarkedPawnId].getX(), 
-					set[this.MarkedPawnId].getY()
-					);
-			this.Frame.getMyClient().sendPack(pck);
-			this.MarkedPawnId = -1;
-			this.repaint();
+			)){
+				pck = new Pack("MAKE_MOVE");
+				pck.setMove(this.MarkedPawnId,
+						set[this.MarkedPawnId].getX(), 
+						set[this.MarkedPawnId].getY()
+						);
+				if(this.MyBoard.checkCheck()){ // sprawdzenie czy jest szach
+					this.Frame.setMsg("Szach",Color.GREEN);
+					pck.setCheck(true);
+				}
+				this.Frame.getMyClient().sendPack(pck);
+				this.MarkedPawnId = -1;
+				this.repaint();
+			};
 		}
 		
+		
 	}
+	
+	/**
+	 * Metoda wywołuje metodę  blokująca możliwość ruchu wszystkim pionkom oprócz króla z Obiektu szachownicy
+	 * @param king
+	 * 			Flaga ustawiona na true powoduje zablokowanie również króla
+	 * 
+	 */
+	public void blockPawns(boolean king) {
+		this.MyBoard.blockPawns(king); // wywołanie metody blokującej
+	}
+	
+	
 	
 	@Override
 	public void mouseEntered(MouseEvent arg0) {
@@ -417,7 +445,15 @@ public class GraphPanel extends JPanel implements MouseListener {
 	public void setInvertedFlag(boolean invertedFlag) {
 		InvertedFlag = invertedFlag;
 	}
-	
-	
+
+	public GameFrame getFrame() {
+		return Frame;
+	}
+
+	public void setFrame(GameFrame frame) {
+		Frame = frame;
+	}
+
+
 
 }

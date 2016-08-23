@@ -197,7 +197,7 @@ public class Client implements Runnable{
 							if(this.PlayerPanel!=null){
 								if(this.PlayerPanel.getSidePanel()!=null){
 									if( this.PlayerPanel.getSidePanel().getMyBoard() !=null){
-										this.PlayerPanel.getSidePanel().getMyBoard().oponentMove(this.InPack.getPawnId(),this.InPack.getX(),this.InPack.getY());
+										this.PlayerPanel.getSidePanel().getMyBoard().oponentMove(this.InPack.getPawnId(),this.InPack.isCheck(),this.InPack.getX(),this.InPack.getY());
 										this.PlayerPanel.getSidePanel().repaint();
 									}
 								}

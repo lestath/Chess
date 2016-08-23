@@ -1,5 +1,7 @@
 package Game;
 
+import java.awt.Color;
+
 import View.GraphPanel;
 
 /**
@@ -17,13 +19,14 @@ public class Board {
 	private Pawn[] WhitePawnSet; // zestaw białych pionków
 	private Pawn[] BlackPawnSet; // zestaw czarnych pionków
 	private int Bottom; //flaga wskazująca któore pionki na dole
+	private GraphPanel Graph; //ramka, która wywołała szachownicę
 	
-	public Board(){
+	public Board(GraphPanel graph){
 		this.LogicBoard = new int[8][8];
 		this.MarkedFieldBoard = new int[8][8];
 		this.WhitePawnSet = new Pawn[16];
 		this.BlackPawnSet = new Pawn[16];
-		
+		this.Graph = graph;
 		
 		for(int i=0;i<8;i++){
 			this.WhitePawnSet[i]=new Pawn(i,Pawn.PAWN,Pawn.WHITE,i,1);
@@ -101,21 +104,42 @@ public class Board {
 	 * Metoda wykonuje ruch przeciwnika
 	 * @param id
 	 * 			Identyfikator pionka
+	 * @param check
+	 * 			Flaga wystapienia szacha
 	 * @param x
 	 * 			Współrzedna X
 	 * @param y
 	 * 			Współrzędna Y
 	 */
-	public void oponentMove(int id, int x, int y){
+	public void oponentMove(int id,boolean check,int x, int y){
 		Pawn[] set;
+		Pawn[] set2;
 		if(this.Bottom==Board.BLACK_ON_BOTTOM){
 			set = this.WhitePawnSet;
 		}else{
 			set = this.BlackPawnSet;
 		}
+		if(this.Bottom==Board.BLACK_ON_BOTTOM){
+			set2 = this.BlackPawnSet;
+		}else{
+			set2 = this.WhitePawnSet;
+		}
+
 		this.LogicBoard[set[id].getX()][set[id].getY()]=-1;
 		set[id].setCords(this.calculateOponentCord(x,false),this.calculateOponentCord(y,true));
+		if(this.LogicBoard[set[id].getX()][set[id].getY()]!=-1){
+			for(int i=0;i<set.length;i++){
+				if(this.LogicBoard[set[id].getX()][set[id].getY()]==set2[i].getId()){
+					set2[i].setActive(false);
+					break;
+				}
+			}
+		}
 		this.LogicBoard[set[id].getX()][set[id].getY()]=set[id].getId();
+		if(check){//akcja jeżeli wystapił szach
+			this.checkMate(); // wywołanie metody sprawdzającej mata
+			this.Graph.getFrame().setMsg("Szach",Color.RED);
+		}
 	}
 	
 	/**
@@ -126,19 +150,40 @@ public class Board {
 	 * 			Współrzędna X
 	 * @param y
 	 * 			Współrzędna Y
+	 * @return 
 	 */
-	public void MyMove(int id, int x,int y){
+	public boolean MyMove(int id, int x,int y){
 		Pawn[] set;
+		Pawn[] set2;
 		if(this.Bottom==Board.WHITE_ON_BOTTOM){
 			set = this.WhitePawnSet;
 		}else{
 			set = this.BlackPawnSet;
 		}
-		this.LogicBoard[set[id].getX()][set[id].getY()]=-1;
-		set[id].setCords(x, y);
-		this.LogicBoard[x][y]=set[id].getId();
-		this.resetMarkedFieldBoard();
-		set[id].setMoveCounter(set[id].getMoveCounter()+1);
+		if(this.MarkedFieldBoard[x][y]==GraphPanel.GREEN_DOT || this.MarkedFieldBoard[x][y]==GraphPanel.RED_DOT ){
+			this.LogicBoard[set[id].getX()][set[id].getY()]=-1;
+			set[id].setMoveCounter(set[id].getMoveCounter()+1);
+			if(this.MarkedFieldBoard[x][y]==GraphPanel.RED_DOT){
+				if(this.Bottom==Board.WHITE_ON_BOTTOM){
+					set2 = this.BlackPawnSet;
+				}else{
+					set2 = this.WhitePawnSet;
+				}
+				for(int i=0;i<set2.length;i++){
+					if(set2[i].getId()==this.LogicBoard[x][y]){
+						set2[i].setActive(false);
+						break;
+					}
+				}
+			}
+			set[id].setCords(x, y);
+			this.LogicBoard[x][y]=set[id].getId();
+			this.resetMarkedFieldBoard();
+
+			
+			return true;
+		}
+		return false;
 	}
 	
 	/**
@@ -155,26 +200,27 @@ public class Board {
 		}else{
 			p= this.BlackPawnSet[index];
 		}
-		
-		switch(p.getStatus()){
-			case Pawn.HORSE :
-				this.checkHorseMove(p);
-			break;
-			case Pawn.KING :
-				this.checkKingMove(p);
-			break;
-			case Pawn.PAWN :
-				this.checkPawnMove(p);
-			break;
-			case Pawn.ROCK :
-				this.checkRockMove(p);
-			break;
-			case Pawn.BISHOP:
-				this.checkBishopMove(p);
-			break;
-			case Pawn.QUEEN:
-				this.checkQueenMove(p);
-			break;
+		if(p.isActive()){
+			switch(p.getStatus()){
+				case Pawn.HORSE :
+					this.checkHorseMove(p);
+				break;
+				case Pawn.KING :
+					this.checkKingMove(p);
+				break;
+				case Pawn.PAWN :
+					this.checkPawnMove(p);
+				break;
+				case Pawn.ROCK :
+					this.checkRockMove(p);
+				break;
+				case Pawn.BISHOP:
+					this.checkBishopMove(p);
+				break;
+				case Pawn.QUEEN:
+					this.checkQueenMove(p);
+				break;
+			}
 		}
 	}
 	
@@ -438,6 +484,59 @@ public class Board {
 		}
 		return false;
 	}
+	
+	/**
+	 * Metoda sprawdzająca wystąpienie szacha
+	 * @return
+	 * 			Zwraca true jeżeli wystapił szach
+	 */
+	public boolean checkCheck(){
+		System.out.println("Weszło w spr Szacha");
+		Pawn[] set;
+		Pawn[] set2;
+			if(this.Bottom==Board.WHITE_ON_BOTTOM){
+				set = this.WhitePawnSet;
+				set2 = this.BlackPawnSet;
+			}else{
+				set= this.BlackPawnSet;
+				set2 =  this.WhitePawnSet;
+			}
+		for(int i=0;i<set.length;i++){
+			if(set[i].isActive()){
+				switch(set[i].getStatus()){
+					case Pawn.HORSE :
+						this.checkHorseMove(set[i]);
+					break;
+					case Pawn.KING :
+						this.checkKingMove(set[i]);
+					break;
+					case Pawn.PAWN :
+						this.checkPawnMove(set[i]);
+					break;
+					case Pawn.ROCK :
+						this.checkRockMove(set[i]);
+					break;
+					case Pawn.BISHOP:
+						this.checkBishopMove(set[i]);
+					break;
+					case Pawn.QUEEN:
+						this.checkQueenMove(set[i]);
+					break;
+				}
+			}
+		}
+		
+		for(int i=0;i<set.length;i++){
+			if(set2[i].isActive() && set2[i].getStatus()==Pawn.KING){
+				if(this.MarkedFieldBoard[set2[i].getX()][set2[i].getY()]==GraphPanel.RED_DOT){
+					this.resetMarkedFieldBoard();
+					return true;
+				}
+			}
+		}
+		this.resetMarkedFieldBoard();
+		return false;
+	}
 
 	/**
 	 * Metoda wyliczająca odwrotną pozycję pionka dla szachownicy przeciwnika
@@ -464,6 +563,30 @@ public class Board {
 		return cord*62+50;
 	}
 	
+	/**
+	 * Metoda blokuje możliwość ruchu pionków(używana w przypadku wystapienia szacha)
+	 * @param king
+	 * 			Flaga ustawiona na true powoduje zablokowanie także króla
+	 */
+	public void blockPawns(boolean king) {
+		Pawn [] set;
+		if(this.Bottom == Board.WHITE_ON_BOTTOM){
+			set = this.WhitePawnSet;
+		}else{
+			set = this.BlackPawnSet;
+		}
+		for(int i=0;i<set.length;i++){
+			if(set[i].getStatus()!=Pawn.KING){
+				set[i].setAllowMove(false);
+			}else{
+				if(king) set[i].setAllowMove(false);
+			}
+		}
+	}
+	
+	private void checkMate(){
+		//TODO oprogramowanie sprawdzenia mata
+	}
 	
 	public int[][] getLogicBoard() {
 		return LogicBoard;
@@ -509,6 +632,4 @@ public class Board {
 	public void setMarkedFieldBoard(int[][] markedFieldBoard) {
 		MarkedFieldBoard = markedFieldBoard;
 	}
-	
-	
 }
