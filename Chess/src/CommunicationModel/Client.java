@@ -120,7 +120,6 @@ public class Client implements Runnable{
 						break;
 						case "LOG_SUCCESS": // poprawne zalogowanie
 							this.MyPlayer = this.InPack.getPlayer();
-							//TODO - nowa ramka gry 
 							this.Frame.setMsg("Poprawinie zalogowano",Color.GREEN);
 							System.out.println("Pomyślnie zalogowano");
 							System.out.println(this.MyPlayer.getId());
@@ -194,12 +193,32 @@ public class Client implements Runnable{
 
 						break;
 						case "MAKE_MOVE" : // rozkaz wykonania ruchu
+							Pack pck = null;
 							if(this.PlayerPanel!=null){
-								this.PlayerPanel.getSidePanel().getMyBoard().setCheck(false);
-								if(this.PlayerPanel.getSidePanel()!=null){
-									if( this.PlayerPanel.getSidePanel().getMyBoard() !=null){
-										this.PlayerPanel.getSidePanel().getMyBoard().oponentMove(this.InPack.getPawnId(),this.InPack.isCheck(),this.InPack.getCheckPawnId(),this.InPack.getX(),this.InPack.getY());
-										this.PlayerPanel.getSidePanel().repaint();
+								if(this.InPack.getCheck() == Pack.CHECK){
+									this.PlayerPanel.setMsg("Szach",Color.GREEN);
+								}else if(this.InPack.getCheck() == Pack.MATE){
+									this.PlayerPanel.setMsg("Szach mat Wygrałeś",Color.GREEN);
+									//TODO oprogramowanie wydarzeń po macie wygrana
+								}else{
+									if(this.PlayerPanel.getSidePanel()!=null){
+										if(this.PlayerPanel.getSidePanel().getMyBoard()!=null){
+											this.PlayerPanel.getSidePanel().getMyBoard().unlockAllPawns();
+											this.PlayerPanel.getSidePanel().getMyBoard().makeOponentMove(this.InPack.getPawnId(),this.InPack.getX(),this.InPack.getY());
+											if(this.PlayerPanel.getSidePanel().getMyBoard().checkCheck()){
+												if(this.PlayerPanel.getSidePanel().getMyBoard().checkMate()){
+													this.PlayerPanel.setMsg("Szach Mat Przegrałeś",Color.RED);
+													pck = new Pack("MAKE_MOVE");
+													pck.setCheck(Pack.MATE);
+													//TODO oprogramowanie wydarzeń po macie przegrana
+												}else{
+													this.PlayerPanel.setMsg("Szach",Color.RED);
+													pck = new Pack("MAKE_MOVE");
+													pck.setCheck(Pack.CHECK);
+												}
+												this.sendPack(pck);
+											}
+										}
 									}
 								}
 							}
@@ -217,6 +236,7 @@ public class Client implements Runnable{
 		}
 		
 	}
+	
 
 	public Pack getOutPack() {
 		return OutPack;

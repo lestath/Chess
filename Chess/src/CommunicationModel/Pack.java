@@ -13,6 +13,8 @@ public class Pack implements Serializable{
 	/**
 	 * 
 	 */
+	public static final int CHECK = 1; // stała wystapienia szacha
+	public static final int MATE = 2; // stała wystapienia mata
 	private static final long serialVersionUID = 1L;
 	private String Message;
 	private Player player;
@@ -21,7 +23,7 @@ public class Pack implements Serializable{
 	private int PawnId; // identyfikator pionka
 	private int X; // współrzędna przesunięcia x
 	private int Y; // współrzedna przesunięcia Y
-	private boolean Check; // flaga oznaczająca wystapienie szacha
+	private int Check; // oznaczenie wystapienia zdarzenia szczególnego jak szach/mat
 	private int CheckPawnId;// identyfikator pionka szachującego
 	
 	public Pack(String msg){
@@ -29,7 +31,7 @@ public class Pack implements Serializable{
 		this.player = null;
 		this.setPlayers(null);
 		this.setColor(0);
-		this.Check = false;
+		this.setCheck(0);
 		this.CheckPawnId = -1;
 	}
 	
@@ -117,15 +119,6 @@ public class Pack implements Serializable{
 	}
 
 
-	public boolean isCheck() {
-		return Check;
-	}
-
-
-	public void setCheck(boolean check) {
-		Check = check;
-	}
-
 
 	public int getCheckPawnId() {
 		return CheckPawnId;
@@ -134,6 +127,16 @@ public class Pack implements Serializable{
 
 	public void setCheckPawnId(int checkPawnId) {
 		CheckPawnId = checkPawnId;
+	}
+
+
+	public int getCheck() {
+		return Check;
+	}
+
+
+	public void setCheck(int check) {
+		Check = check;
 	}
 	
 	

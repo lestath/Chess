@@ -175,7 +175,6 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 		}else if(obj == this.StartGameBtn){
 			int row = this.SidePanel.getTablesTab().getSelectedRow();
 			Player p = new Player(this.SidePanel.getTablesTab().getModel().getValueAt(row,1).toString(),"");
-			System.out.println("WYBRANY PRZECIWNIK "+p.getNick());
 			pck = new Pack("SELECT_OPONENT");
 			pck.setPlayer(p);
 			this.myClient.sendPack(pck);

@@ -49,7 +49,8 @@ public class GraphPanel extends JPanel implements MouseListener {
 	private boolean GameStarted; // flaga określająca czy rozpoczęła się gra
 	private Board MyBoard; // obiekt szachownicy
 	private boolean InvertedFlag; // flaga okeslająca czy tło szachownicy było odwrócone
-	private int MarkedPawnId; // identyfikator zaznaczonego pionka
+	private Pawn SelectedPawn; //obiekt zaznaczonego pionka
+
 	
 	public GraphPanel(int w, int h, GameFrame frm){
 		this.Frame = frm;
@@ -57,7 +58,7 @@ public class GraphPanel extends JPanel implements MouseListener {
 		this.setLayout(new FlowLayout());
 		this.setOpaque(false);
 		this.InvertedFlag = false;
-		this.MarkedPawnId = -1;
+
 		
 		try {
 		    this.Background = ImageIO.read(getClass().getResource("/img/background2.png"));
@@ -228,23 +229,29 @@ public class GraphPanel extends JPanel implements MouseListener {
 	 * Metoda rysująca na panelu graficznym aktualny stan pionków
 	 */
 	private void showActualBoard(Graphics2D g2d){
-		for(int i=0;i<16;i++){
-			if(this.MyBoard.getBlackPawnSet()[i].isActive()){
-				g2d.drawImage(
-					this.MyBoard.getBlackPawnSet()[i].getImg(),null,
-					this.MyBoard.getBlackPawnSet()[i].getGraphCordX(),
-					this.MyBoard.getBlackPawnSet()[i].getGraphCordY()
-				);
-			}
-			if(this.MyBoard.getWhitePawnSet()[i].isActive()){
-				g2d.drawImage(
-						this.MyBoard.getWhitePawnSet()[i].getImg(),null,
-						this.MyBoard.getWhitePawnSet()[i].getGraphCordX(),
-						this.MyBoard.getWhitePawnSet()[i].getGraphCordY()
-					);
+		Pawn p=null;
+		for(int i=0;i<8;i++){
+			for(int j=0;j<8;j++){
+				if(this.MyBoard.getMyBoard()[i][j]!=null){
+					p=this.MyBoard.getMyBoard()[i][j];
+					if(p.isActive()){
+						p.calcCordstoGraph();
+						g2d.drawImage(p.getImg(),null,p.getGraphCordX(),p.getGraphCordY());
+					}
+				}
+				p=null;
 			}
 		}
-		this.drawCheckField(g2d);
+
+		for(int i=0;i<8;i++){
+			for(int j=0;j<8;j++){
+				if(this.MyBoard.getLogicBoard()[i][j]==GraphPanel.GREEN_DOT){
+					g2d.drawImage(this.GreenDotImg,null,this.MyBoard.getGraphCord(i),this.MyBoard.getGraphCord(j));
+				}else if(this.MyBoard.getLogicBoard()[i][j]==GraphPanel.RED_DOT){
+					g2d.drawImage(this.RedDotImg,null,this.MyBoard.getGraphCord(i),this.MyBoard.getGraphCord(j));
+				}
+			}
+		}
 	}
 	
 	/**
@@ -254,11 +261,8 @@ public class GraphPanel extends JPanel implements MouseListener {
 	 * 			Flaga określająca który set ma się znaleźć na dole szachownicy
 	 */
 	public void startGame(int bottom){
+		this.MyBoard = new Board(this,bottom);
 		this.prepareTableToGame();
-		if(this.MyBoard==null){
-			this.MyBoard = new Board(this);
-		}
-		this.MyBoard.initBoard(bottom);
 		this.GameStarted = true;
 		this.repaint();
 	}
@@ -289,22 +293,7 @@ public class GraphPanel extends JPanel implements MouseListener {
 		}
 	}
 	
-	/**
-	 * Metoda stawiają ca kropki oznaczające w odpowiedniej konfiguracji
-	 * @param g2d
-	 * 			Komponent graficzny
-	 */
-	public void drawCheckField(Graphics2D g2d){
-		if(this.MyBoard!= null){
-			int[][] markedtab=this.MyBoard.getMarkedFieldBoard();
-			// oznaczenie kropek
-				for(int i=0;i<markedtab.length;i++){
-					for(int j=0;j<markedtab.length;j++){
-						this.putdot(markedtab[i][j],g2d,this.MyBoard.calcLogicToGraph(i),this.MyBoard.calcLogicToGraph(j));
-					}
-				}
-		}
-	}
+
 	
 	/**
 	 *  Metoda rysująca orazek kropki(znacznika pola) na panelu graficznym
@@ -347,73 +336,26 @@ public class GraphPanel extends JPanel implements MouseListener {
 	
 	@Override
 	public void mouseClicked(MouseEvent arg0) {
-		// TODO Auto-generated method stub
+		Pack pck = null;
 		int x = arg0.getX();
 		int y = arg0.getY();
-		int xx = 0;
-		int yy = 0;
-		Pack pck;
-		Pawn[] set;
-		if(this.MyBoard.getBottom() == Board.WHITE_ON_BOTTOM){
-			set = this.MyBoard.getWhitePawnSet();
-		}else{
-			set = this.MyBoard.getBlackPawnSet();
-		}
-		for(int i=0;i<16;i++){
-			if(set[i].isActive() && set[i].isAllowMove()){
-			 xx = set[i].getGraphCordX();
-				if(x>xx && x<(xx+60)){
-					yy = set[i].getGraphCordY();
-					if(y>yy && y<(yy+60)){
-						if(i !=this.MarkedPawnId){
-							this.MarkedPawnId = i;
-							this.MyBoard.checkMove(i);
-						}else{
-							this.MarkedPawnId = -1;
-							this.MyBoard.resetMarkedFieldBoard();
-						}
-						this.repaint();
-						return;
-					}
-				}
+		if(SelectedPawn==null){
+			if(this.MyBoard!=null){
+				this.SelectedPawn = this.MyBoard.checkClicked(x,y);
 			}
-		}
-		
-		if(this.MarkedPawnId!=-1){
-			if(this.MyBoard.MyMove(this.MarkedPawnId,
-					set[this.MarkedPawnId].getLogicCord(x),
-					set[this.MarkedPawnId].getLogicCord(y)
-			)){
+		}else{
+			if(this.MyBoard.makeMove(this.SelectedPawn,x,y)){
+				//TODO this.MyBoard.lockAllPawns();
 				pck = new Pack("MAKE_MOVE");
-				pck.setMove(this.MarkedPawnId,
-						set[this.MarkedPawnId].getX(), 
-						set[this.MarkedPawnId].getY()
-						);
-				if(this.MyBoard.checkCheck(true)){ // sprawdzenie czy jest szach
-					this.Frame.setMsg("Szach",Color.GREEN);
-					pck.setCheck(true);
-					pck.setCheckPawnId(this.MyBoard.getCheckPawnID());
-				}
+				pck.setPawnId(this.SelectedPawn.getId());
+				pck.setX(this.SelectedPawn.getX());
+				pck.setY(this.SelectedPawn.getY());
 				this.Frame.getMyClient().sendPack(pck);
-				this.MarkedPawnId = -1;
-				this.repaint();
-			};
+			}
+			this.SelectedPawn = null;
 		}
-		
-		
+		this.repaint();	
 	}
-	
-	/**
-	 * Metoda wywołuje metodę  blokująca możliwość ruchu wszystkim pionkom oprócz króla z Obiektu szachownicy
-	 * @param king
-	 * 			Flaga ustawiona na true powoduje zablokowanie również króla
-	 * 
-	 */
-	public void blockPawns(boolean king) {
-		this.MyBoard.blockPawns(king); // wywołanie metody blokującej
-	}
-	
-	
 	
 	@Override
 	public void mouseEntered(MouseEvent arg0) {
