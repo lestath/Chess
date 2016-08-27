@@ -132,6 +132,9 @@ public class Client implements Runnable{
 						case "RESP_RANK" : // wiadomość o dostarczeniu rankingu
 							if(this.PlayerPanel!=null){
 								if(this.PlayerPanel.getSidePanel()!=null){
+									for(int i=0;i<this.InPack.getPlayers().length;i++){
+										if(this.InPack.getPlayers()[i]!=null)System.out.println(">>> "+this.InPack.getPlayers()[i].getWins());
+									}
 									this.PlayerPanel.getSidePanel().showRanking(this.InPack.getPlayers()); // przekazanie pakietu z rankingiem do wyświetlenia w panelu graficznym
 								}
 							}
@@ -199,6 +202,7 @@ public class Client implements Runnable{
 									this.PlayerPanel.setMsg("Szach",Color.GREEN);
 								}else if(this.InPack.getCheck() == Pack.MATE){
 									this.PlayerPanel.setMsg("Szach mat Wygrałeś",Color.GREEN);
+									this.PlayerPanel.getSidePanel().getMyBoard().lockAllPawns();
 									//TODO oprogramowanie wydarzeń po macie wygrana
 								}else{
 									if(this.PlayerPanel.getSidePanel()!=null){
@@ -210,6 +214,7 @@ public class Client implements Runnable{
 													this.PlayerPanel.setMsg("Szach Mat Przegrałeś",Color.RED);
 													pck = new Pack("MAKE_MOVE");
 													pck.setCheck(Pack.MATE);
+													this.PlayerPanel.getSidePanel().getMyBoard().lockAllPawns();
 													//TODO oprogramowanie wydarzeń po macie przegrana
 												}else{
 													this.PlayerPanel.setMsg("Szach",Color.RED);

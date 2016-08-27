@@ -24,7 +24,10 @@ public class Board {
 		private int[][] MySimulationBoard; // tablica symulacji wykorzystywana przy sprawdzaniu ruchów własnego pionka
 		private int[][] SaveBoard;// tablica trzymająca dane z tablicy logicznej korzystamy z niej do zapisu/odczytu
 		private boolean[][] NoMatBoard; //tablica przetrzymująca pozycje, po których nie ma mata 
+		private int[][] AllowPawnMovesBoard; //tablica przetrzymująca pozycje pionka nie odsłaniające króla na mat
+		private boolean[][] KingDanger;// tablica przetrzymuje pozycje zagrożenia króla szachem po przesunięciu na dane pole 
 		private int Context; // pole kontekstu sprawdzania ruchu pionka 0 zwykły 1 w kontekście mata
+		private boolean Lock; // zamek zapobiegający przejściu w rekurencję przy sprawdzaniu ruchów pionka
 		
 		
 		public Board(GraphPanel graph,int colorflag){
@@ -36,7 +39,10 @@ public class Board {
 			this.SaveBoard = new int[8][8];
 			this.MySimulationBoard = new int[8][8];
 			this.NoMatBoard = new boolean[8][8];
+			this.KingDanger = new boolean[8][8];
+			this.AllowPawnMovesBoard = new int[8][8];
 			this.Context = Board.NO_MAT_CONTEXT;
+			this.Lock = true;
 			for(int i=0;i<8;i++){
 				for(int j=0;j<8;j++){
 					this.MyBoard[i][j]=null;
@@ -44,7 +50,9 @@ public class Board {
 					this.SimulationBoard[i][j]=0;
 					this.SaveBoard[i][j]=0;
 					this.MySimulationBoard[i][j]=0;
+					this.AllowPawnMovesBoard[i][j]=0;
 					this.NoMatBoard[i][j]=false;
+					this.KingDanger[i][j]=false;
 					}
 			}
 			int id = 0;
@@ -139,6 +147,8 @@ public class Board {
 						this.MyBoard[lx][ly].setX(-1);
 						this.MyBoard[lx][ly].setY(-1);;
 					}
+					this.resetTab(this.NoMatBoard);
+					this.resetTab(this.KingDanger);
 					this.MyBoard[p.getX()][p.getY()]=null;
 					this.MyBoard[lx][ly]=p;
 					p.setX(lx);
@@ -160,6 +170,7 @@ public class Board {
 		 */
 		public void makeOponentMove(int id,int px,int py){
 			this.resetTab(this.NoMatBoard);
+			this.resetTab(this.KingDanger);
 			Pawn enemy = null;
 			Pawn p = this.getPawnById(id);
 			if(p!=null){
@@ -212,25 +223,50 @@ public class Board {
 		 */
 		public boolean checkMate(){
 			this.Context = Board.MAT_CONTEXT;
+			Pawn p=null;// zmienna pomocnicz do przechowania pionka zbijanego w sumulacji
+			int counter = 0;
 			for(int i=0;i<8;i++){ // iteracja po własnych pionkach
 				for(int j=0;j<8;j++){
 					if(MyBoard[i][j]!=null && MyBoard[i][j].getColor()==MyColor && MyBoard[i][j].isActive() && MyBoard[i][j].isAllowMove()){
 						this.resetTab(this.MySimulationBoard);
 						this.simulateMyMove(MyBoard[i][j]);
-						for(int x=0;x<8;x++){
+						for(int x=0;x<8;x++){ // iteracja po możliwch ruchach własnego pionka 
 							for(int y=0;y<8;y++){
-								if(MySimulationBoard[x][y]==GraphPanel.GREEN_DOT){ // jeżeli zielona kropa
+								this.Context = Board.MAT_CONTEXT;
+								if(MySimulationBoard[x][y]!=0){ // jeżeli zielona lub czerwona kropka
+									if(MySimulationBoard[x][y]==GraphPanel.RED_DOT){
+										p=MyBoard[x][y];
+										p.setX(-1);
+										p.setY(-1);
+										p.setActive(false);
+										p.setAllowMove(false);
+									}
 									MyBoard[x][y]=MyBoard[i][j];
 									MyBoard[x][y].setX(x);
 									MyBoard[x][y].setY(y);
 									MyBoard[i][j]=null;
 									if(!this.checkCheck()){
+										System.out.println("nie ma mata");
 										this.NoMatBoard[x][y]=true;
+										counter = counter +1;
+									}else{
+										if(this.MyBoard[x][y].getStatus()==Pawn.KING){
+											this.KingDanger[x][y]=true;
+										}
 									}
+									
 									MyBoard[i][j]=MyBoard[x][y];
 									MyBoard[i][j].setX(i);
 									MyBoard[i][j].setY(j);
-									MyBoard[x][y]=null;
+									if(MySimulationBoard[x][y]==GraphPanel.RED_DOT){
+										MyBoard[x][y]=p;
+										p.setX(x);
+										p.setY(y);
+										p.setActive(true);
+										p.setAllowMove(true);
+									}else{
+										MyBoard[x][y]=null;
+									}
 								}
 							}
 						}
@@ -239,7 +275,68 @@ public class Board {
 			}
 			this.Context = Board.NO_MAT_CONTEXT;
 			//this.lockAllPawns();
-			return false;
+			if(counter>0)return false;
+			return true;
+		}
+		
+		/**
+		 * Metoda wypełnie tablicę dozwolonych ruchów pionka po symulacji (sprawdza czy ruch pionka nie odsłoni króla na szach)
+		 * @param p
+		 * 			Referencja na pionek sprawdzany 
+		 */
+		private void checkAllowMoves(Pawn pawn){
+			if(pawn.getColor()!=this.MyColor)return;
+			this.Lock = false;
+			int prevx = pawn.getX();
+			int prevy = pawn.getY();
+			boolean control = false; // kontrolka wystapienia czerwonej kropki w sprawdzeniu symulacyjnym
+			Pawn p= null; // poprzedni pionek 
+			for(int i=0;i<8;i++)
+				for(int j=0;j<8;j++)
+						this.AllowPawnMovesBoard[i][j]=this.LogicBoard[i][j];
+			
+			for(int x=0;x<8;x++){ // iteracja po możliwch ruchach własnego pionka 
+				for(int y=0;y<8;y++){
+					this.Context = Board.MAT_CONTEXT;
+					if(AllowPawnMovesBoard[x][y]!=0){ // jeżeli zielona lub czerwona kropka
+						if(AllowPawnMovesBoard[x][y]==GraphPanel.RED_DOT){
+							p=MyBoard[x][y];
+							p.setX(-1);
+							p.setY(-1);
+							p.setActive(false);
+							p.setAllowMove(false);
+						}
+						MyBoard[x][y]=MyBoard[prevx][prevy];
+						MyBoard[x][y].setX(x);
+						MyBoard[x][y].setY(y);
+						MyBoard[prevx][prevy]=null;
+						if(AllowPawnMovesBoard[x][y]==GraphPanel.RED_DOT)control = true;
+						if(this.checkCheck()){
+							AllowPawnMovesBoard[x][y]=0;
+							System.out.println("Sprawdziło === "+ pawn.getStatus());
+						}
+						MyBoard[prevx][prevy]=MyBoard[x][y];
+						MyBoard[prevx][prevy].setX(prevx);
+						MyBoard[prevx][prevy].setY(prevy);
+						if(control){
+							MyBoard[x][y]=p;
+							p.setX(x);
+							p.setY(y);
+							p.setActive(true);
+							p.setAllowMove(true);
+							control = false;
+						}else{
+							MyBoard[x][y]=null;
+						}
+					}
+				}
+			}
+			
+			for(int i=0;i<8;i++)
+				for(int j=0;j<8;j++)
+					this.LogicBoard[i][j]=this.AllowPawnMovesBoard[i][j];
+			Lock = true;
+			
 		}
 		
 		/**
@@ -384,17 +481,34 @@ public class Board {
 						case Pawn.ROCK :
 							this.checkRockMove(p);
 						break;
+						case Pawn.KING :
+							//if(this.Context==Board.MAT_CONTEXT && context==Board.MY_CONTEXT)this.Context=NO_MAT_CONTEXT;
+							this.checkKingMove(p);
+						break;
+					}
+				
+					if(this.Lock){
+						this.checkAllowMoves(p);
+					}
+	
+					if(!this.isTabFalse(this.NoMatBoard) && this.Context != Board.MAT_CONTEXT){
+						for(int i=0;i<8;i++){
+							for(int j=0;j<8;j++){
+								if(this.LogicBoard[i][j]==GraphPanel.GREEN_DOT || this.LogicBoard[i][j]==GraphPanel.RED_DOT ) 
+									if(this.NoMatBoard[i][j]==false)this.LogicBoard[i][j]=0;
+							}
+						}
+					}
+					
+					if(p.getStatus()==Pawn.KING && !this.isTabFalse(KingDanger)){
+						for(int i=0;i<8;i++){
+							for(int j=0;j<8;j++){
+								if(this.LogicBoard[i][j]==GraphPanel.GREEN_DOT || this.LogicBoard[i][j]==GraphPanel.RED_DOT ) 
+									if(this.KingDanger[i][j]==true)this.LogicBoard[i][j]=0;
+							}
+						}
 					}
 			  }
-			}
-			//TODO tu było kombinowane
-			if(!this.isTabFalse(this.NoMatBoard) && this.Context != MAT_CONTEXT){
-				for(int i=0;i<8;i++){
-					for(int j=0;j<8;j++){
-						if(this.LogicBoard[i][j]==GraphPanel.GREEN_DOT || this.LogicBoard[i][j]==GraphPanel.RED_DOT ) 
-							if(this.NoMatBoard[i][j]==false)this.LogicBoard[i][j]=0;
-					}
-				}
 			}
 		}
 		
@@ -482,6 +596,33 @@ public class Board {
 			for(i = -2;i<3;i++){
 				for(j=-2;j<3;j++){
 					if( (i!=0) && (j!=0) && (Math.abs(i)!=Math.abs(j)) ){
+						x = p.getX()+i;
+						y=p.getY()+j;
+						if(x>=0 && x<8 && y>=0 && y<8){
+							if(this.MyBoard[x][y]==null){
+									this.LogicBoard[x][y]=GraphPanel.GREEN_DOT;
+							}else{
+								if(this.MyBoard[x][y].getColor()!=p.getColor()){
+									this.LogicBoard[x][y]=GraphPanel.RED_DOT;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		/**
+		 * Metoda sprawdzająca ruchy króla
+		 * @param p
+		 * 			Referencja na pionek
+		 */
+		private void checkKingMove(Pawn p){
+			int x,y;
+			int i,j;
+			for(i = -1;i<2;i++){
+				for(j=-1;j<2;j++){
+					if(!(j==0 && i==0)){
 						x = p.getX()+i;
 						y=p.getY()+j;
 						if(x>=0 && x<8 && y>=0 && y<8){

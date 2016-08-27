@@ -21,7 +21,6 @@ public class Player implements Serializable{
 	private int Draw;
 	
 	public Player(String nick,String cs){
-		
 		this.Nick = nick;
 		this.Password = cs;
 		this.Wins = 0;

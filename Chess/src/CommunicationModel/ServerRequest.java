@@ -88,7 +88,7 @@ public class ServerRequest extends Thread {
 						}
 					break;
 					case "GIVE_RANK" : //prośba o ranking
-						 pack = new Pack("RESP_RANK");// wysłanie rankingu
+						pack = new Pack("RESP_RANK");// wysłanie rankingu
 						pack.setPlayers(this.getRank());
 						this.sentPack(pack);
 					break;
@@ -134,6 +134,10 @@ public class ServerRequest extends Thread {
 					break;
 					case "MAKE_MOVE" : // informacja o wykonaniu ruchu, musi zostać przekazana do przeciwnika
 						if(OponentID<50 && OponentID>-1){
+							if(pck.getCheck()==Pack.MATE){ // jeżeli wykrylismy mata to ustawiamy punkty zwycięzcy i przegranego
+								saveGameResults();
+								System.out.println("Wejście w zapis do rankingu");
+							}
 							this.Serv.getClientsThr()[this.OponentID].sentPack(pck);
 						}
 					break;
@@ -179,30 +183,34 @@ public class ServerRequest extends Thread {
 	 * 		Zwraca posortowaną tablicę graczy do rankingu
 	 */
 	public Player[] getRank(){
-		Player[] regs = this.Serv.getRegisteredPlayers();
+		Player[] regs = new Player[this.Serv.getRegisteredPlayers().length]; 
+		for(int i=0;i<regs.length;i++){
+			regs[i]=this.Serv.getRegisteredPlayers()[i];
+		}
 		Player[] sort = new Player[regs.length];
+		for(int i=0;i<regs.length;i++){
+			sort[i]=regs[i];
+		}
 		Player play;
 		int i = 0;
 		int j = 0;
 		while(i<regs.length){
-			if(regs[i]==null) return sort;
-				play = regs[i];
-				j = i;
-				while(j<regs.length){
-				 if(regs[j]==null)break;
-				 if(regs[j].getWins()>play.getWins()) play = regs[j];
-				 if(regs[j].getWins()==play.getWins()){
-					 if(regs[j].getLoses()<play.getLoses())play = regs[j];
-					 if(regs[j].getLoses()==play.getLoses()){
-						 if(regs[j].getDraw()>play.getDraw())play=regs[j];
-					 }
-				 }
-				 j++;
-				}
-				sort[i]=play;
-				i++;
-			
-		}
+			j=0;
+			if(sort[i]!=null){
+					while(j<regs.length){
+						if(sort[j]!=null){
+								if(sort[i].getWins()>sort[j].getWins()){
+									play = sort[i];
+									sort[i]=sort[j];
+									sort[j]=play;
+								}
+						}
+						j++;
+					}
+			}
+			i++;
+		}		
+		System.out.println("Weszło do metody gromadzenia rankingu");
 		return sort;
 	}
 	
@@ -292,7 +300,7 @@ public class ServerRequest extends Thread {
 	 * @return
 	 * 		Zwraca zarejestrowanego gracza jeżeli ten kwalifikuje się do zalogowania
 	 */
-	public synchronized Player loginPlayer(Player play){
+	public  Player loginPlayer(Player play){
 		int i = 0;
 		while(this.Serv.getRegisteredPlayers()[i]!=null){
 			if(this.Serv.getRegisteredPlayers()[i].getNick().equals(play.getNick())){
@@ -304,7 +312,9 @@ public class ServerRequest extends Thread {
 							}
 						}
 					}
+					this.Serv.getRegisteredPlayers()[i].getNick();
 					return this.Serv.getRegisteredPlayers()[i];
+					
 				}
 			}
 			i = i+1;
@@ -334,6 +344,33 @@ public class ServerRequest extends Thread {
 			}
 		}
 		return false;
+	}
+	
+	/**
+	 * Metoda zapisująca wynik wyniki dla graczy w tabeli rankingowej
+	 */
+	private void saveGameResults(){
+		int i = 0;
+		if(this.Client==null)return;
+		if(this.OponentID==-1)return;
+		System.out.println("Przeszło pierwszy etap");
+		while(i<this.Serv.getRegisteredPlayers().length && this.Serv.getRegisteredPlayers()[i]!=null){
+			if(this.Serv.getClientsThr()[this.OponentID].getClient().getNick().equals(Serv.getRegisteredPlayers()[i].getNick())){
+				Serv.getRegisteredPlayers()[i].setWins(Serv.getRegisteredPlayers()[i].getWins()+1);
+			}
+			if(this.Client.getNick().equals(Serv.getRegisteredPlayers()[i].getNick())){
+				Serv.getRegisteredPlayers()[i].setLoses(Serv.getRegisteredPlayers()[i].getLoses()+1);
+			}
+			i = i+1;
+		}
+		this.Serv.saveRegisteredPlayers();
+		try { // uśpienie wątku na czas wykonania zadania
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		this.Serv.uploadRegisteredPlayers();
 	}
 	
 	

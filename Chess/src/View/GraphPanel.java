@@ -161,6 +161,14 @@ public class GraphPanel extends JPanel implements MouseListener {
 	public void showRanking(Player[] players){
 		if(players==null)return;
 		int i=0; 
+		for(i=0;i<50;i++){
+			this.RankTab.setValueAt("",i,0);
+			this.RankTab.setValueAt("",i,1);
+			this.RankTab.setValueAt("",i,2);
+			this.RankTab.setValueAt("",i,3);
+			this.RankTab.setValueAt("",i,4);
+		}
+		i=0;
 		while(i<100 && players[i]!=null){
 			if(players[i].getNick().equals(this.Frame.getMyClient().getMyPlayer().getNick())){
 				this.RankTab.setSelectionBackground(Color.GREEN);
@@ -187,6 +195,11 @@ public class GraphPanel extends JPanel implements MouseListener {
 	public void showTables(Player[] players){
 		if(players==null)return;
 		int i=0; 
+		for(i=0;i<50;i++){
+			this.TablesTab.setValueAt("",i,0);
+			this.TablesTab.setValueAt("",i,1);
+		}
+		i=0;
 		while(i<50 && players[i]!=null){
 			this.TablesTab.setValueAt(Integer.toString(i+1),i,0);
 			this.TablesTab.setValueAt(players[i].getNick(),i,1);

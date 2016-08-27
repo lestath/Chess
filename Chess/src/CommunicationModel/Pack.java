@@ -75,7 +75,14 @@ public class Pack implements Serializable{
 	}
 
 	public void setPlayers(Player[] players) {
-		this.players = players;
+		if(players==null){
+			this.players=null;
+			return;
+		}
+		this.players = new Player[players.length];
+		for(int i=0;i<players.length;i++){
+			this.players[i]=players[i];
+		}
 	}
 
 

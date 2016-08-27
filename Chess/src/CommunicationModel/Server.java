@@ -92,7 +92,7 @@ public class Server implements Runnable{
 	/**
 	 * Metoda odczytująca plik z zarejestrowanymi graczami do lokalnego pola tablicowego
 	 */
-   private synchronized void uploadRegisteredPlayers(){
+   public synchronized void uploadRegisteredPlayers(){
 			try {
 				this.Indata = new ObjectInputStream(new FileInputStream(this.Filepath));
 				int i = 0;
@@ -112,7 +112,7 @@ public class Server implements Runnable{
    /**
     * Metoda Zapisuje stan tablicy lokalnego pola tablicowego zarejestrowanych graczy do pliku
     */
-   private synchronized void saveRegisteredPlayers(){
+   public synchronized void saveRegisteredPlayers(){
 	   int i=0;
 	   try {
 		   this.Outdata = new ObjectOutputStream(new FileOutputStream(this.Filepath));
