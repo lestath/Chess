@@ -410,6 +410,14 @@ public class GraphPanel extends JPanel implements MouseListener {
 		Frame = frame;
 	}
 
+	public byte getGameState() {
+		return GameState;
+	}
+
+	public void setGameState(byte gameState) {
+		GameState = gameState;
+	}
+
 
 
 }

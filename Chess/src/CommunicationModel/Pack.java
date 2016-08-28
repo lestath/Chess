@@ -15,6 +15,10 @@ public class Pack implements Serializable{
 	 */
 	public static final int CHECK = 1; // stała wystapienia szacha
 	public static final int MATE = 2; // stała wystapienia mata
+	public static final int DRAW_PROPOSE = 3; // stała propozycji remisu
+	public static final int DRAW_YES = 4; // stała zgody na remis
+	public static final int DRAW_NO = 5; // stała odmowy remisu
+	public static final int DRAW = 6; // stała wystapienia remisu wynikająca z ruchów
 	private static final long serialVersionUID = 1L;
 	private String Message;
 	private Player player;

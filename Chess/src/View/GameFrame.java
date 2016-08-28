@@ -16,6 +16,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import CommunicationModel.Client;
@@ -39,11 +40,14 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 	private JButton RankBtn;
 	private JButton ExitBtn;
 	private JButton StartGameBtn; // przycisk rozpoczecia gry po dokonaniu wyboru stołu
+	private JButton ExitTableBtn; // przycisk opuszczenia stołu
+	private JButton DrawProposeBtn; // przycisk propozycji remisu
 	private JLabel PlayerLab; // etykieta informacji o graczu
 	private JLabel InfoLab; // etykieta powiadomień
 	private GraphPanel SidePanel; // panel boczny (wyświetlacz)
 	public GameFrame(Client cli){
 		super("Chess Game");
+
 		this.myClient = cli;
 		Dimension windowdim = new Dimension(820,690);
 		
@@ -104,7 +108,7 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 			 this.NewBoardBTn.setFocusPainted(false);
 			 this.NewBoardBTn.setBackground(Color.black);
 			 this.NewBoardBTn.setForeground(Color.WHITE);
-			
+
 			 this.JoinGameBtn = new JButton("Dołącz do gry");
 			 this.JoinGameBtn.setPreferredSize(btndim);
 			 this.JoinGameBtn.addActionListener(this);
@@ -119,6 +123,23 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 			 this.RankBtn.setBackground(Color.black);
 			 this.RankBtn.setForeground(Color.WHITE);
 			 
+			 this.DrawProposeBtn = new JButton("Zaproponuj remis");
+			 this.DrawProposeBtn.setPreferredSize(btndim);
+			 this.DrawProposeBtn.addActionListener(this);
+			 this.DrawProposeBtn.setFocusPainted(false);
+			 this.DrawProposeBtn.setBackground(Color.black);
+			 this.DrawProposeBtn.setForeground(Color.WHITE);
+			 this.DrawProposeBtn.setEnabled(false);
+			 
+			 this.ExitTableBtn = new JButton("Opuść stół");
+			 this.ExitTableBtn.setPreferredSize(btndim);
+			 this.ExitTableBtn.addActionListener(this);
+			 this.ExitTableBtn.setFocusPainted(false);
+			 this.ExitTableBtn.setBackground(Color.black);
+			 this.ExitTableBtn.setForeground(Color.WHITE);
+			 this.ExitTableBtn.setEnabled(false);
+			 
+			 
 			 this.ExitBtn = new JButton("Wyjdź");
 			 this.ExitBtn.setPreferredSize(btndim);
 			 this.ExitBtn.addActionListener(this);
@@ -132,12 +153,13 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 			 this.StartGameBtn.setFocusPainted(false);
 			 this.StartGameBtn.setBackground(Color.black);
 			 this.StartGameBtn.setForeground(Color.WHITE);
+			 this.StartGameBtn.setEnabled(false);
 			 this.StartGameBtn.setVisible(true);
 			 
 			 JLabel separatelabel = new JLabel();
 			 separatelabel.setPreferredSize(new Dimension(btndim.width,100));
 			 JLabel separatelabel2 = new JLabel();
-			 separatelabel2.setPreferredSize(new Dimension(btndim.width,310));
+			 separatelabel2.setPreferredSize(new Dimension(btndim.width,250));
 			 
 			 btnpanel.add(this.PlayerLab);
 			 btnpanel.add(separatelabel);
@@ -145,6 +167,8 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 			 btnpanel.add(this.JoinGameBtn);
 			 btnpanel.add(this.RankBtn);
 			 btnpanel.add(this.StartGameBtn);
+			 btnpanel.add(this.DrawProposeBtn);
+			 btnpanel.add(this.ExitTableBtn);
 			 btnpanel.add(separatelabel2);
 			 btnpanel.add(this.ExitBtn);
 			 btnpanel.setVisible(true);
@@ -160,27 +184,111 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 	
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
+		boolean t= true;
+		boolean f= false;
 		Object obj = arg0.getSource();
 		Pack pck; // pakiet do wysyłania
 		if(obj == this.RankBtn){
+			this.setBtnsAct(t,t,t,f,f,f,t);
 			pck = new Pack("GIVE_RANK");
 			this.myClient.sendPack(pck);
 			System.out.println("Wsyłam");
 		}else if(obj == this.NewBoardBTn){
 			pck = new Pack("NEW_TABLE");
+			this.setBtnsAct(f,f,f,f,f,t,t);
 			this.myClient.sendPack(pck);
 		}else if(obj == this.JoinGameBtn){
 			pck = new Pack("GIVE_TAB_LIST");
 			this.myClient.sendPack(pck);
+			this.setBtnsAct(t,t,t,t,f,f,t);
 		}else if(obj == this.StartGameBtn){
+			this.setBtnsAct(f,f,f,f,t,t,t);
 			int row = this.SidePanel.getTablesTab().getSelectedRow();
+			if(row == -1){row = 0;}
 			Player p = new Player(this.SidePanel.getTablesTab().getModel().getValueAt(row,1).toString(),"");
 			pck = new Pack("SELECT_OPONENT");
 			pck.setPlayer(p);
 			this.myClient.sendPack(pck);
 		}else if(obj == this.ExitBtn){
 			this.exitProcedure();
+		}else if(obj == this.ExitTableBtn){
+			pck = new Pack("CLOSE_TABLE");
+			this.setBtnsAct(t,t,t,f,f,f,t);
+			this.myClient.sendPack(pck);
+		}else if(obj==this.DrawProposeBtn){
+			this.setBtnsAct(f,f,f,f,f,t,t);
+			setMsg("Zaproponowałeś remis",Color.WHITE);
+			pck = new Pack("MAKE_MOVE");
+			pck.setCheck(Pack.DRAW_PROPOSE);
+			this.myClient.sendPack(pck);
 		}
+	}
+
+	/**
+	 * Metoda ustawia aktywność poszczególnych przycisków
+	 * @param b1
+	 * 			Flaga przycisku "Utwórz stół"
+	 * @param b2
+	 * 			Flaga przycisku "Dołącz do gry"
+	 * @param b3
+	 * 			Flaga przycisku "Ranking"
+	 * @param b4
+	 * 			Flaga przycisku "Rozpocznij grę"
+	 * @param b5
+	 * 			Flaga przycisku "Zaproponuj remis"
+	 * @param b6
+	 * 			Flaga przycisku "Opusc stół"
+	 * @param b7
+	 * 			Flaga przycisku "Wyjdź"
+	 */
+	public void setBtnsAct(boolean b1, boolean b2 , boolean b3, boolean b4, boolean b5, boolean b6, boolean b7){
+		this.NewBoardBTn.setEnabled(b1);
+		this.JoinGameBtn.setEnabled(b2);
+		this.RankBtn.setEnabled(b3);
+		this.StartGameBtn.setEnabled(b4);
+		this.DrawProposeBtn.setEnabled(b5);
+		this.ExitTableBtn.setEnabled(b6);
+		this.ExitBtn.setEnabled(b7);
+	}
+	
+	/**
+	 * Metoda wyświetlająca okno propozycji remisu
+	 */
+	public void drawWindow(){
+		boolean t = true;
+		boolean f = false;
+		Pack p;
+		this.setBtnsAct(f,f,f,f,f,t,t);
+		int selectedOption = JOptionPane.showConfirmDialog(null, 
+                "Przeciwnik zaproponował remis. Zgadzasz się?", 
+                "Choose", 
+                JOptionPane.YES_NO_OPTION); 
+			if (selectedOption == JOptionPane.YES_OPTION) {
+				setMsg("zaakceptowałeś remis koniec gry",Color.WHITE);
+				p = new Pack("MAKE_MOVE");
+				p.setCheck(Pack.DRAW_YES);
+				this.myClient.sendPack(p);
+				this.setBtnsAct(t,t,t,f,f,f,t);
+				if(this.SidePanel!=null){
+					if(SidePanel.getMyBoard()!=null){
+						this.SidePanel.getMyBoard().lockAllPawns();
+					}
+				}
+			}else if(selectedOption == JOptionPane.NO_OPTION){
+				setMsg("Odrzuciłeś propozycję remisu remis",Color.WHITE);
+				p = new Pack("MAKE_MOVE");
+				p.setCheck(Pack.DRAW_NO);
+				this.myClient.sendPack(p);
+			}
+	}
+	
+	
+	public JButton getDrawProposeBtn() {
+		return DrawProposeBtn;
+	}
+
+	public void setDrawProposeBtn(JButton drawProposeBtn) {
+		DrawProposeBtn = drawProposeBtn;
 	}
 
 	@Override

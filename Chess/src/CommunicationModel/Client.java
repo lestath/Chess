@@ -85,6 +85,8 @@ public class Client implements Runnable{
 
 	@Override
 	public void run() {
+		boolean t = true;
+		boolean f = false;
 		// utworzenie i wysłanie pakietu powitalnego wraz z przedstawieniem gracza
 		this.OutPack = new Pack("HELLO");
 		try {
@@ -129,6 +131,17 @@ public class Client implements Runnable{
 							this.PlayerPanel.getPlayerLab().setText(this.MyPlayer.getNick());
 							//this.Frame.setVisible(false);
 						break;
+						case "TABLE_CLOSED": //błąd logowania
+							if(this.PlayerPanel!=null){
+								if(this.PlayerPanel.getSidePanel()!=null){
+									this.PlayerPanel.setMsg("Zamknięto stół",Color.GREEN);
+									this.PlayerPanel.getSidePanel().setGameStarted(false);
+									this.PlayerPanel.getSidePanel().setGameState((byte)0);
+									this.PlayerPanel.getSidePanel().repaint();
+									
+								}
+							}
+						break;
 						case "RESP_RANK" : // wiadomość o dostarczeniu rankingu
 							if(this.PlayerPanel!=null){
 								if(this.PlayerPanel.getSidePanel()!=null){
@@ -158,12 +171,13 @@ public class Client implements Runnable{
 						case "OPONENT_SELECT_FAILED" : // wiadomość o niepowodzeniu wybrania przeciwnika
 							if(this.PlayerPanel!=null){
 									this.PlayerPanel.setMsg("Akcja nie powiodła się - spróbuj ponownie, lub wybierz kogoś innego",Color.RED);
+									this.PlayerPanel.setBtnsAct(t,t,t,t,f,f,t);
 							}
 						break;
 						case "START_GAME" : // gra rozpoczyna się a wybierającym jest ten klient
 							if(this.PlayerPanel!=null){
 								if(this.PlayerPanel.getSidePanel()!=null){
-									this.PlayerPanel.setMsg("Gra rozpoczyna się a ty wybrałeś",Color.GREEN);
+									this.PlayerPanel.setMsg("Wybrałeś gracza- Gra rozpoczyna się",Color.GREEN);
 									if(!this.PlayerPanel.getSidePanel().isInvertedFlag()){
 										this.PlayerPanel.getSidePanel().invertBoard();
 									}
@@ -174,10 +188,11 @@ public class Client implements Runnable{
 						case "OPONENT_CHOSE_YOU" : // gra rozpoczyna się a ten klient oczekiwał z założonym stołem
 							if(this.PlayerPanel!=null){
 								if(this.PlayerPanel.getSidePanel()!=null){
-									this.PlayerPanel.setMsg("Gra rozpoczyna się TY czekałeś",Color.GREEN);
+									this.PlayerPanel.setMsg("Gra rozpoczyna się",Color.GREEN);
 									if(this.PlayerPanel.getSidePanel().isInvertedFlag()){
 										this.PlayerPanel.getSidePanel().invertBoard();
 									}
+									this.PlayerPanel.setBtnsAct(f,f,f,f,t,t,t);
 									this.PlayerPanel.getSidePanel().startGame(this.InPack.getColor());
 								}
 							}
@@ -185,9 +200,11 @@ public class Client implements Runnable{
 						case "OPONENT_EXITED"  : // przeciwnik z którym gram odszedł
 							if(this.PlayerPanel!=null){
 								if(this.PlayerPanel.getSidePanel()!=null){
-									this.PlayerPanel.setMsg("Przeciwnik odchodzi",Color.WHITE);
+									this.PlayerPanel.setMsg("Przeciwnik odchodzi Wygrywasz Walkowerem",Color.WHITE);
 									this.PlayerPanel.getSidePanel().setGameStarted(false);
+									this.PlayerPanel.getSidePanel().setGameState((byte)0);
 									this.PlayerPanel.getSidePanel().repaint();
+									this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t);
 									// TODO dodać walkower
 								}
 							}
@@ -200,22 +217,43 @@ public class Client implements Runnable{
 							if(this.PlayerPanel!=null){
 								if(this.InPack.getCheck() == Pack.CHECK){
 									this.PlayerPanel.setMsg("Szach",Color.GREEN);
-								}else if(this.InPack.getCheck() == Pack.MATE){
+								}else if(this.InPack.getCheck() == Pack.MATE){ // jeżeli wygrana
 									this.PlayerPanel.setMsg("Szach mat Wygrałeś",Color.GREEN);
 									this.PlayerPanel.getSidePanel().getMyBoard().lockAllPawns();
+									this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t);
 									//TODO oprogramowanie wydarzeń po macie wygrana
+								}else if(this.InPack.getCheck()==Pack.DRAW_PROPOSE){
+									if(this.PlayerPanel!=null){
+										System.out.println("Propozycja remisu");
+										this.PlayerPanel.drawWindow();
+										
+									}
+								}else if(this.InPack.getCheck()==Pack.DRAW_NO){ // jeżeli przeciwnik odrzucił propozycję remisu
+									if(this.PlayerPanel!=null){
+											this.PlayerPanel.setMsg("Przeciwnik odrzucił propozycję remisu",Color.RED);
+									}
+								}else if(this.InPack.getCheck()==Pack.DRAW_YES){
+									if(this.PlayerPanel!=null){
+										this.PlayerPanel.setMsg("Gra zakończona remisem",Color.GREEN);
+										this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t);
+										if(this.PlayerPanel.getSidePanel()!=null){
+											if(this.PlayerPanel.getSidePanel().getMyBoard()!=null){
+												this.PlayerPanel.getSidePanel().getMyBoard().lockAllPawns();
+											}
+										}
+									}
 								}else{
 									if(this.PlayerPanel.getSidePanel()!=null){
 										if(this.PlayerPanel.getSidePanel().getMyBoard()!=null){
 											this.PlayerPanel.getSidePanel().getMyBoard().unlockAllPawns();
 											this.PlayerPanel.getSidePanel().getMyBoard().makeOponentMove(this.InPack.getPawnId(),this.InPack.getX(),this.InPack.getY());
 											if(this.PlayerPanel.getSidePanel().getMyBoard().checkCheck()){
-												if(this.PlayerPanel.getSidePanel().getMyBoard().checkMate()){
+												if(this.PlayerPanel.getSidePanel().getMyBoard().checkMate()){ // jeżeli przegrana
 													this.PlayerPanel.setMsg("Szach Mat Przegrałeś",Color.RED);
 													pck = new Pack("MAKE_MOVE");
 													pck.setCheck(Pack.MATE);
 													this.PlayerPanel.getSidePanel().getMyBoard().lockAllPawns();
-													//TODO oprogramowanie wydarzeń po macie przegrana
+													this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t);
 												}else{
 													this.PlayerPanel.setMsg("Szach",Color.RED);
 													pck = new Pack("MAKE_MOVE");

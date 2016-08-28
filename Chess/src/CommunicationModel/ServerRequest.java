@@ -14,6 +14,9 @@ import Game.Player;
  *
  */
 public class ServerRequest extends Thread {
+	private static byte END_CONTEXT_MAT = 0; //  stała zakończenia matem
+	private static byte END_CONTEXT_WALKOVER = 1;  //stała zakończenia walkowerem
+	private static byte END_CONTEXT_DRAW = 2; // stała zakończenia remisem
 	private Player Client; // obiekt gracza
 	private int ClientID; // identyfikator klienta 
 	private int OponentID; // identyfikator przeciwnika
@@ -117,28 +120,38 @@ public class ServerRequest extends Thread {
 							this.sentPack(pack);
 						}
 					break;
+					case "CLOSE_TABLE": // Prośba o zamknięcie stołu (jeżeli prowadziliśmy grę to przegrana walkowerem)
+						this.exitProcedure();
+						pack = new Pack("TABLE_CLOSED"); // inforamcja o zamknięciu stołu
+						this.sentPack(pack);
+					break;
 					case "EXIT_ME" : //prośba o wylogowanie
-						if(OponentID<50 && OponentID>-1){
-							pack = new Pack("OPONENT_EXITED");
-							if(this.Serv.getClientsThr()[this.OponentID]!=null){
-								this.Serv.getClientsThr()[this.OponentID].setOponentID(-1);
-								this.Serv.getClientsThr()[this.OponentID].sentPack(pack);
-							}
-						}
-						pack = new Pack("EXIT_SUCCESS");// wysłanie listy graczy posiadających stół
+						this.exitProcedure();
+						pack = new Pack("EXIT_SUCCESS");
 						this.Serv.getClientsActivity()[this.ClientID][0] = false;
-						this.Serv.getClientsActivity()[this.ClientID][1] = false;
 						this.Serv.getClientsThr()[this.ClientID] = null;
 						this.Running = false;
 						this.sentPack(pack);
 					break;
 					case "MAKE_MOVE" : // informacja o wykonaniu ruchu, musi zostać przekazana do przeciwnika
 						if(OponentID<50 && OponentID>-1){
-							if(pck.getCheck()==Pack.MATE){ // jeżeli wykrylismy mata to ustawiamy punkty zwycięzcy i przegranego
-								saveGameResults();
+							if(pck.getCheck()==Pack.MATE || pck.getCheck()==Pack.DRAW_YES ){ // jeżeli wykrylismy mata to ustawiamy punkty zwycięzcy i przegranego
+								if(pck.getCheck()==Pack.MATE){
+									saveGameResults(ServerRequest.END_CONTEXT_MAT);
+								}else{
+									saveGameResults(ServerRequest.END_CONTEXT_DRAW);
+								}
+								this.Serv.getClientsActivity()[this.ClientID][1] = false;
+								if(OponentID<50 && OponentID>-1){
+									if(this.Serv.getClientsThr()[this.OponentID]!=null){
+										this.Serv.getClientsThr()[this.OponentID].setOponentID(-1);	
+										this.Serv.getClientsActivity()[this.OponentID][1]=false;	
+									}
+								}
 								System.out.println("Wejście w zapis do rankingu");
 							}
 							this.Serv.getClientsThr()[this.OponentID].sentPack(pck);
+							if(pck.getCheck()==Pack.MATE || pck.getCheck()==Pack.DRAW_YES)this.OponentID = -1;
 						}
 					break;
 				}
@@ -177,6 +190,25 @@ public class ServerRequest extends Thread {
 			e1.printStackTrace();
 		}
 	}
+	
+	/**
+	 * Metoda wywoływana przy przerwaniu gry przez jednego z graczy (rozłącza graczy z pary i ustawia walkower)
+	 */
+	private void exitProcedure(){
+		Pack pack;
+		this.Serv.getClientsActivity()[this.ClientID][1] = false;
+		if(OponentID<50 && OponentID>-1){
+			this.saveGameResults(ServerRequest.END_CONTEXT_WALKOVER);
+			pack = new Pack("OPONENT_EXITED");
+			if(this.Serv.getClientsThr()[this.OponentID]!=null){
+				this.Serv.getClientsThr()[this.OponentID].setOponentID(-1);
+				this.Serv.getClientsThr()[this.OponentID].sentPack(pack);
+				
+			}
+			this.OponentID = -1;
+		}
+	}
+	
 	/**
 	 * Metoda uzyskiwania rankingu graczy
 	 * @return
@@ -348,18 +380,28 @@ public class ServerRequest extends Thread {
 	
 	/**
 	 * Metoda zapisująca wynik wyniki dla graczy w tabeli rankingowej
+	 * @param walkower
+	 * 			Flaga ustawiona na stałą zakończenia gry w zalezności od kontekstu wywołania
 	 */
-	private void saveGameResults(){
+	private void saveGameResults(byte end_context){
 		int i = 0;
 		if(this.Client==null)return;
 		if(this.OponentID==-1)return;
 		System.out.println("Przeszło pierwszy etap");
 		while(i<this.Serv.getRegisteredPlayers().length && this.Serv.getRegisteredPlayers()[i]!=null){
 			if(this.Serv.getClientsThr()[this.OponentID].getClient().getNick().equals(Serv.getRegisteredPlayers()[i].getNick())){
-				Serv.getRegisteredPlayers()[i].setWins(Serv.getRegisteredPlayers()[i].getWins()+1);
+				if(end_context==ServerRequest.END_CONTEXT_WALKOVER || end_context==ServerRequest.END_CONTEXT_MAT ){
+					Serv.getRegisteredPlayers()[i].setWins(Serv.getRegisteredPlayers()[i].getWins()+1);
+				}else if(end_context==ServerRequest.END_CONTEXT_DRAW){
+					Serv.getRegisteredPlayers()[i].setDraw(Serv.getRegisteredPlayers()[i].getDraw()+1);
+				}
 			}
 			if(this.Client.getNick().equals(Serv.getRegisteredPlayers()[i].getNick())){
-				Serv.getRegisteredPlayers()[i].setLoses(Serv.getRegisteredPlayers()[i].getLoses()+1);
+				if(end_context==ServerRequest.END_CONTEXT_WALKOVER || end_context==ServerRequest.END_CONTEXT_MAT){
+					Serv.getRegisteredPlayers()[i].setLoses(Serv.getRegisteredPlayers()[i].getLoses()+1);
+				}else if(end_context==ServerRequest.END_CONTEXT_DRAW){
+					Serv.getRegisteredPlayers()[i].setDraw(Serv.getRegisteredPlayers()[i].getDraw()+1);
+				}
 			}
 			i = i+1;
 		}
