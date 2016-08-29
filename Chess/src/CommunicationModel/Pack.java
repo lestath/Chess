@@ -21,6 +21,7 @@ public class Pack implements Serializable{
 	public static final int DRAW = 6; // stała wystapienia remisu wynikająca z ruchów
 	private static final long serialVersionUID = 1L;
 	private String Message;
+	private String Nick; // pole pseudonimów
 	private Player player;
 	private Player[] players; // tablica graczy używana w wyświetlaniu rankingu
 	private int Color; // kolor pionków
@@ -29,6 +30,7 @@ public class Pack implements Serializable{
 	private int Y; // współrzedna przesunięcia Y
 	private int Check; // oznaczenie wystapienia zdarzenia szczególnego jak szach/mat
 	private int CheckPawnId;// identyfikator pionka szachującego
+	private int Status; // nowy status pionka jeżeli wiadomość o zmianie statusu
 	
 	public Pack(String msg){
 		this.Message = msg;
@@ -37,6 +39,9 @@ public class Pack implements Serializable{
 		this.setColor(0);
 		this.setCheck(0);
 		this.CheckPawnId = -1;
+		this.Nick = "";
+		this.Status = -1;
+		this.Check = -1;
 	}
 	
 	
@@ -148,6 +153,26 @@ public class Pack implements Serializable{
 
 	public void setCheck(int check) {
 		Check = check;
+	}
+
+
+	public int getStatus() {
+		return Status;
+	}
+
+
+	public void setStatus(int status) {
+		Status = status;
+	}
+
+
+	public String getNick() {
+		return Nick;
+	}
+
+
+	public void setNick(String nick) {
+		Nick = nick;
 	}
 	
 	

@@ -11,6 +11,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -278,6 +279,7 @@ public class GraphPanel extends JPanel implements MouseListener {
 		this.prepareTableToGame();
 		this.GameStarted = true;
 		this.repaint();
+		
 	}
 	
 	
@@ -358,16 +360,56 @@ public class GraphPanel extends JPanel implements MouseListener {
 			}
 		}else{
 			if(this.MyBoard.makeMove(this.SelectedPawn,x,y)){
-				//TODO this.MyBoard.lockAllPawns();
 				pck = new Pack("MAKE_MOVE");
 				pck.setPawnId(this.SelectedPawn.getId());
 				pck.setX(this.SelectedPawn.getX());
 				pck.setY(this.SelectedPawn.getY());
 				this.Frame.getMyClient().sendPack(pck);
+				if(this.SelectedPawn.getStatus()==Pawn.PAWN && this.SelectedPawn.getY()==0){
+					this.swapPawn(this.SelectedPawn);
+				}
 			}
 			this.SelectedPawn = null;
 		}
 		this.repaint();	
+	}
+	
+	/**
+	 * Metoda zmieniająca zwykły pionek na dowolny inny po dotarciu nim do końca szachownicy
+	 * Wybór na podstawie okna dialogowego wyboru
+	 * @param p
+	 * 			Referencja na pionek do zamiany
+	 */
+	private void swapPawn(Pawn p){
+		if(p!=null){
+			if(p.isActive() && p.getStatus()==Pawn.PAWN){
+				if(this.MyBoard!=null){
+					String[] options ={"Hetman","Wieża","Skoczek","Goniec"};
+					int response = JOptionPane.showOptionDialog(null,"Wybież figurę na którą chcesz zamienić pionek","Zmiana pionka",JOptionPane.OK_OPTION,JOptionPane.PLAIN_MESSAGE,null,options,0);
+					switch(response){
+						case 0:
+							p.setStatus(Pawn.QUEEN);
+							System.out.println("Wymiana udała się "+p.getStatus());
+						break;
+						case 1:
+							p.setStatus(Pawn.ROCK);
+						break;
+						case 2:
+							p.setStatus(Pawn.HORSE);
+						break;
+						case 3:
+							p.setStatus(Pawn.BISHOP);
+						break;
+					}
+					p.chosePict(p.getStatus());
+					Pack pck = new Pack("SWAP_PAWN");
+					pck.setPawnId(p.getId());
+					pck.setStatus(p.getStatus());
+					this.Frame.getMyClient().sendPack(pck);
+					
+				}
+			}
+		}
 	}
 	
 	@Override

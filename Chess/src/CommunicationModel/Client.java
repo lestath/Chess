@@ -8,6 +8,7 @@ import java.net.Socket;
 
 import View.GameFrame;
 import View.LoginFrame;
+import Game.Pawn;
 import Game.Player;
 
 
@@ -181,8 +182,14 @@ public class Client implements Runnable{
 									if(!this.PlayerPanel.getSidePanel().isInvertedFlag()){
 										this.PlayerPanel.getSidePanel().invertBoard();
 									}
-									this.PlayerPanel.getSidePanel().startGame(this.InPack.getColor());
 								}
+								this.PlayerPanel.setBtnsAct(f,f,f,f,t,t,t);
+								this.PlayerPanel.getSidePanel().startGame(this.InPack.getColor());
+								String mycolor = "Czarny";
+								this.PlayerPanel.getColorLab().setText("Mój kolor : "+mycolor);
+								Pack nickpack = new Pack("MY_NAME_IS");
+								nickpack.setNick(this.MyPlayer.getNick());
+								this.sendPack(nickpack);	
 							}
 						break;
 						case "OPONENT_CHOSE_YOU" : // gra rozpoczyna się a ten klient oczekiwał z założonym stołem
@@ -194,7 +201,16 @@ public class Client implements Runnable{
 									}
 									this.PlayerPanel.setBtnsAct(f,f,f,f,t,t,t);
 									this.PlayerPanel.getSidePanel().startGame(this.InPack.getColor());
-								}
+									String mycolor = "Biały";
+									this.PlayerPanel.getColorLab().setText("Mój kolor : "+mycolor);
+									Pack nickpack = new Pack("MY_NAME_IS");
+									nickpack.setNick(this.MyPlayer.getNick());
+									this.sendPack(nickpack);								}
+							}
+						break;
+						case "MY_NAME_IS" : // wiadomosc od przeciwnika (przedstawienie się)
+							if(this.PlayerPanel!=null){
+								this.PlayerPanel.getOponentLab().setText("Przeciwnik : "+this.InPack.getNick());
 							}
 						break;
 						case "OPONENT_EXITED"  : // przeciwnik z którym gram odszedł
@@ -205,7 +221,8 @@ public class Client implements Runnable{
 									this.PlayerPanel.getSidePanel().setGameState((byte)0);
 									this.PlayerPanel.getSidePanel().repaint();
 									this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t);
-									// TODO dodać walkower
+									this.PlayerPanel.getOponentLab().setText("");
+									this.PlayerPanel.getColorLab().setText("");
 								}
 							}
 						break;
@@ -221,11 +238,12 @@ public class Client implements Runnable{
 									this.PlayerPanel.setMsg("Szach mat Wygrałeś",Color.GREEN);
 									this.PlayerPanel.getSidePanel().getMyBoard().lockAllPawns();
 									this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t);
-									//TODO oprogramowanie wydarzeń po macie wygrana
+									this.PlayerPanel.getOponentLab().setText("");
+									this.PlayerPanel.getColorLab().setText("");
 								}else if(this.InPack.getCheck()==Pack.DRAW_PROPOSE){
 									if(this.PlayerPanel!=null){
 										System.out.println("Propozycja remisu");
-										this.PlayerPanel.drawWindow();
+										this.PlayerPanel.drawWindow(); // okno propozycji remisu
 										
 									}
 								}else if(this.InPack.getCheck()==Pack.DRAW_NO){ // jeżeli przeciwnik odrzucił propozycję remisu
@@ -236,6 +254,8 @@ public class Client implements Runnable{
 									if(this.PlayerPanel!=null){
 										this.PlayerPanel.setMsg("Gra zakończona remisem",Color.GREEN);
 										this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t);
+										this.PlayerPanel.getOponentLab().setText("");
+										this.PlayerPanel.getColorLab().setText("");
 										if(this.PlayerPanel.getSidePanel()!=null){
 											if(this.PlayerPanel.getSidePanel().getMyBoard()!=null){
 												this.PlayerPanel.getSidePanel().getMyBoard().lockAllPawns();
@@ -254,6 +274,8 @@ public class Client implements Runnable{
 													pck.setCheck(Pack.MATE);
 													this.PlayerPanel.getSidePanel().getMyBoard().lockAllPawns();
 													this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t);
+													this.PlayerPanel.getOponentLab().setText("");
+													this.PlayerPanel.getColorLab().setText("");
 												}else{
 													this.PlayerPanel.setMsg("Szach",Color.RED);
 													pck = new Pack("MAKE_MOVE");
@@ -265,6 +287,20 @@ public class Client implements Runnable{
 									}
 								}
 							}
+						break;
+						case "SWAP_PAWN": // informacja o zmianie statusu pionka przez gracza
+						  if(this.PlayerPanel!=null){
+							if(this.PlayerPanel.getSidePanel()!=null){
+								if(this.PlayerPanel.getSidePanel().getMyBoard()!=null){
+									Pawn swappawn;
+									swappawn=this.PlayerPanel.getSidePanel().getMyBoard().getPawnById(this.InPack.getPawnId());
+									swappawn.setStatus(this.InPack.getStatus());
+									swappawn.chosePict(this.InPack.getStatus());
+									this.PlayerPanel.getSidePanel().repaint();
+									this.PlayerPanel.setMsg("Przeciwnik zamienił pionek",Color.WHITE);
+								}
+							}
+						  }
 						break;
 					}
 				}
@@ -300,6 +336,10 @@ public class Client implements Runnable{
 		 }
 	}
 	
+	protected void finalize(){
+		this.PlayerPanel.exitProcedure();
+	}
+	
 	public boolean isReady() {
 		return Ready;
 	}
@@ -322,5 +362,13 @@ public class Client implements Runnable{
 
 	public void setFrame(LoginFrame frame) {
 		Frame = frame;
+	}
+
+	public GameFrame getPlayerPanel() {
+		return PlayerPanel;
+	}
+
+	public void setPlayerPanel(GameFrame playerPanel) {
+		PlayerPanel = playerPanel;
 	}
 }

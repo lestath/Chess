@@ -112,6 +112,7 @@ public class Pawn {
 	/**
 	 * Metoda dobiera odpowiedni obrazek w zależności od podanego statusu pionka
 	 * @param stat
+	 * 			Stała statusu pionka
 	 */
 	public void chosePict(int stat){
 		String col = "white";

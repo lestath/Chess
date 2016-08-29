@@ -48,13 +48,14 @@ public class Server implements Runnable{
 			this.ClientsActivity[i][1]=false; //ustawienie parametru założenia stołu
 		}
 		this.Accept = true;
-		this.Filepath = "resources/players.dat";
+		this.Filepath = "./players.dat";
 		File f = new File(this.Filepath);
 		if(!f.exists()) { 
 			try {
 				f.createNewFile();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
+				System.out.println("Problem z utworzeniem pliku");
 				e.printStackTrace();
 			}
 		}
@@ -233,7 +234,7 @@ public class Server implements Runnable{
 	
 	
 	
-	/*
+	
 	public static void main(String[] args){
 		int port;
 		try{
@@ -247,7 +248,7 @@ public class Server implements Runnable{
 			 pe.printStackTrace();
 		}
 	}
-	*/
+	
   
 	
 }

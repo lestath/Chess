@@ -43,15 +43,16 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 	private JButton ExitTableBtn; // przycisk opuszczenia stołu
 	private JButton DrawProposeBtn; // przycisk propozycji remisu
 	private JLabel PlayerLab; // etykieta informacji o graczu
+	private JLabel ColorLab;
+	private JLabel OponentLab;
 	private JLabel InfoLab; // etykieta powiadomień
 	private GraphPanel SidePanel; // panel boczny (wyświetlacz)
 	public GameFrame(Client cli){
 		super("Chess Game");
 
 		this.myClient = cli;
-		Dimension windowdim = new Dimension(820,690);
-		
 		// tło
+		Dimension windowdim = new Dimension(850,680);
 		BufferedImage img =null;
 		try {
 		    img = ImageIO.read(getClass().getResource("/img/background.jpg"));
@@ -100,7 +101,14 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 			 this.PlayerLab = new JLabel();
 			 this.PlayerLab.setPreferredSize(btndim);
 			 this.PlayerLab.setForeground(Color.WHITE);
-			
+			 
+			 this.ColorLab =  new JLabel();
+			 this.ColorLab.setPreferredSize(btndim);
+			 this.ColorLab.setForeground(Color.WHITE);
+			 
+			 this.OponentLab =  new JLabel();
+			 this.OponentLab.setPreferredSize(btndim);
+			 this.OponentLab.setForeground(Color.WHITE);
 			 
 			 this.NewBoardBTn = new JButton("Utwórz stół");
 			 this.NewBoardBTn.setPreferredSize(btndim);
@@ -157,11 +165,13 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 			 this.StartGameBtn.setVisible(true);
 			 
 			 JLabel separatelabel = new JLabel();
-			 separatelabel.setPreferredSize(new Dimension(btndim.width,100));
+			 separatelabel.setPreferredSize(new Dimension(btndim.width,30));
 			 JLabel separatelabel2 = new JLabel();
 			 separatelabel2.setPreferredSize(new Dimension(btndim.width,250));
 			 
 			 btnpanel.add(this.PlayerLab);
+			 btnpanel.add(this.ColorLab);
+			 btnpanel.add(this.OponentLab);
 			 btnpanel.add(separatelabel);
 			 btnpanel.add(this.NewBoardBTn);
 			 btnpanel.add(this.JoinGameBtn);
@@ -343,6 +353,30 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 		this.myClient.setRunning(false);
 		this.dispose();
 	}
+	/**
+	 * Metoda opuszczenia gry wywoływana jest z okna nadrzędnego (okno logowania)
+	 */
+	public void exitProcedure2(){
+		Pack p = new Pack("EXIT_ME");
+		this.myClient.setRunning(false);
+		this.myClient.sendPack(p);
+		this.dispose();
+	}
 	
+	public JLabel getColorLab() {
+		return ColorLab;
+	}
+
+	public void setColorLab(JLabel colorLab) {
+		ColorLab = colorLab;
+	}
+
+	public JLabel getOponentLab() {
+		return OponentLab;
+	}
+
+	public void setOponentLab(JLabel oponentLab) {
+		OponentLab = oponentLab;
+	}
 	
 }

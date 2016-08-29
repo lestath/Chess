@@ -9,12 +9,12 @@ import View.GraphPanel;
  *
  */
 public class Board {
-		private static final int BLACK_ON_BOTTOM=1; // stała oznaczająca, że gracz jest czarny
-		private static final int WHITE_ON_BOTTOM=2;// stała oznaczająca, że gracz jest biały
-		private static final int MY_CONTEXT = 0; // stała oznaczająca, że sprawdzamy coś z prespektywy gracza 
-		private static final int OPONENT_CONTEXT = 1; // stała oznaczająca, że sprawdzamy coś z perspektywy przeciwnika
-		private static final int MAT_CONTEXT = 1; // stała oznaczająca, że sprawdzamy coś z perspektywy sprawdzenia mata
-		private static final int NO_MAT_CONTEXT = 0;//stała oznaczająca, że sprawdzamy ruch pionka bez perspektywy mata
+		public static final int BLACK_ON_BOTTOM=1; // stała oznaczająca, że gracz jest czarny
+		public static final int WHITE_ON_BOTTOM=2;// stała oznaczająca, że gracz jest biały
+		public static final int MY_CONTEXT = 0; // stała oznaczająca, że sprawdzamy coś z prespektywy gracza 
+		public static final int OPONENT_CONTEXT = 1; // stała oznaczająca, że sprawdzamy coś z perspektywy przeciwnika
+		public static final int MAT_CONTEXT = 1; // stała oznaczająca, że sprawdzamy coś z perspektywy sprawdzenia mata
+		public static final int NO_MAT_CONTEXT = 0;//stała oznaczająca, że sprawdzamy ruch pionka bez perspektywy mata
 		private GraphPanel Graph;// graf,który wywołał szachownicę
 		private int MyColor;//kolor gracza
 		private Pawn[][] MyBoard; // tablica pionków reprezentująca szachownicę 
@@ -139,6 +139,9 @@ public class Board {
 		public boolean makeMove(Pawn p,int x, int y){
 			int lx=this.getLogicCord(x);
 			int ly=this.getLogicCord(y);
+			if(this.MyBoard[lx][ly]!=null){
+				if(this.MyBoard[lx][ly].getStatus()==Pawn.KING)return false;
+			}
 			if(lx>=0 && lx<=8 && ly>=0 && ly<8){
 				if(this.LogicBoard[lx][ly]==GraphPanel.GREEN_DOT || this.LogicBoard[lx][ly]==GraphPanel.RED_DOT){
 					if(this.LogicBoard[lx][ly]==GraphPanel.RED_DOT){

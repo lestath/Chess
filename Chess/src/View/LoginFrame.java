@@ -5,6 +5,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -14,7 +16,6 @@ import javax.swing.JTextField;
 
 import CommunicationModel.Client;
 import CommunicationModel.Pack;
-import CommunicationModel.Server;
 import Game.Player;
 
 /**
@@ -48,10 +49,17 @@ public class LoginFrame extends JFrame implements ActionListener {
 	
 	public LoginFrame(){
 		super("Chess");
-		new Thread(new Server(4448)).start();
+		//TODO w celach testowych wewnątrz eclipse odkomentować natomiast zakomentować przy przenoszeniu aplikacji do .jar
+		//new Thread(new Server(4448)).start();
 		this.MyClient = new Client[10];
 		this.setSize(300,250);
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	    this.addWindowListener(new WindowAdapter() {
+	        @Override
+	        public void windowClosing(WindowEvent event) {
+	            exitProcedure();
+	        }
+
+	    });
 		this.setLayout(new FlowLayout(FlowLayout.CENTER));
 		this.setResizable(false);
 		this.setLocationRelativeTo(null);
@@ -109,6 +117,16 @@ public class LoginFrame extends JFrame implements ActionListener {
 		this.add(LoginBtn);
 		this.add(RegisterBtn);
 		this.setVisible(true);
+	}
+
+	protected void exitProcedure() {
+		for(int i=0;i<10;i++){
+			if(this.MyClient[i]!=null){
+				this.MyClient[i].getPlayerPanel().exitProcedure2();
+				this.MyClient[i]=null;
+			}
+		}
+		this.dispose();
 	}
 
 	/**

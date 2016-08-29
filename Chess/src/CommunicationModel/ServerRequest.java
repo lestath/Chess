@@ -154,6 +154,12 @@ public class ServerRequest extends Thread {
 							if(pck.getCheck()==Pack.MATE || pck.getCheck()==Pack.DRAW_YES)this.OponentID = -1;
 						}
 					break;
+					default: 
+						if(this.OponentID!=-1){
+							this.Serv.getClientsThr()[this.OponentID].sentPack(pck);
+						}
+					break;
+					
 				}
 			}
 			pck = null;
@@ -387,7 +393,6 @@ public class ServerRequest extends Thread {
 		int i = 0;
 		if(this.Client==null)return;
 		if(this.OponentID==-1)return;
-		System.out.println("Przeszło pierwszy etap");
 		while(i<this.Serv.getRegisteredPlayers().length && this.Serv.getRegisteredPlayers()[i]!=null){
 			if(this.Serv.getClientsThr()[this.OponentID].getClient().getNick().equals(Serv.getRegisteredPlayers()[i].getNick())){
 				if(end_context==ServerRequest.END_CONTEXT_WALKOVER || end_context==ServerRequest.END_CONTEXT_MAT ){
