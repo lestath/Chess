@@ -24,6 +24,7 @@ public class Pack implements Serializable{
 	private String Nick; // pole pseudonimów
 	private Player player;
 	private Player[] players; // tablica graczy używana w wyświetlaniu rankingu
+	private GameSaved[] saves; // tablica zapisanych gier gracza używana przy pobraniu zapisów
 	private int Color; // kolor pionków
 	private int PawnId; // identyfikator pionka
 	private int X; // współrzędna przesunięcia x
@@ -35,6 +36,7 @@ public class Pack implements Serializable{
 	public Pack(String msg){
 		this.Message = msg;
 		this.player = null;
+		this.saves = null;
 		this.setPlayers(null);
 		this.setColor(0);
 		this.setCheck(0);
@@ -173,6 +175,16 @@ public class Pack implements Serializable{
 
 	public void setNick(String nick) {
 		Nick = nick;
+	}
+
+
+	public GameSaved[] getSaves() {
+		return saves;
+	}
+
+
+	public void setSaves(GameSaved[] saves) {
+		this.saves = saves;
 	}
 	
 	

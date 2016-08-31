@@ -26,10 +26,15 @@ public class Server implements Runnable{
 	private volatile boolean[][] ClientsActivity; // rejestr aktywności klientów	pierwszy wymiar to id klienta a drugi określa czy ten konkretny jest aktywny i założył stół
 	private volatile ObjectInputStream Indata; // strumień danych wejściowych do zapisywania obiektów do poliku
 	private volatile ObjectOutputStream Outdata; // strumień danych wyjściowych o odczytu danych z pliku
-	private String Filepath;
+	private volatile ObjectInputStream SavedDataIn;// strumień danych wejściowych zapisanych gier
+	private volatile ObjectOutputStream SavedDataOut; // strumień danych wyjściowych zapisanych gier
+ 	private String Filepath; // ścieżka do pliku z zarejestrowanymi graczami
+	private String Filepath2; // ścieżka do pliku z zapisanymi grami
 	private volatile Player[] RegisteredPlayers; // tablica zarejestrowanych graczy pobierana z pliku
+	private volatile GameSaved SavedGames[]; // tablica zapisanych gier
 	private int MaxPlayers; // maksymalna ilość zarejestrowanych graczy
 	private int MaxActiveClients; // maksymalna ilość aktywnych klientów
+	private int MaxSavedGames; // maksymalna ilość zapisanych gier
 	/**
 	 * Konstruktor serwera
 	 * @param port
@@ -39,28 +44,47 @@ public class Server implements Runnable{
 	public Server(int port){
 		this.MaxPlayers = 100;
 		this.MaxActiveClients = 50;
+		this.MaxSavedGames = 100;
 		this.Port = port;
 		this.ClientsActivity = new boolean[this.MaxActiveClients][2];
 		this.ClientsThr = new ServerRequest[this.MaxActiveClients];
 		this.RegisteredPlayers = new Player[this.MaxPlayers];
+		this.SavedGames = new GameSaved[this.MaxSavedGames];
 		for(int i=0;i<this.MaxActiveClients;i++){
 			this.ClientsActivity[i][0]=false; // ustawienie parametru aktywności
 			this.ClientsActivity[i][1]=false; //ustawienie parametru założenia stołu
 		}
 		this.Accept = true;
-		this.Filepath = "./players.dat";
+		// operacje na pliku zarejestrowanych graczy
+		this.Filepath = "./players.dat"; 
 		File f = new File(this.Filepath);
 		if(!f.exists()) { 
 			try {
 				f.createNewFile();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				System.out.println("Problem z utworzeniem pliku");
+				System.out.println("Problem z utworzeniem pliku zarejestrowanych graczy");
 				e.printStackTrace();
 			}
 		}
 		this.uploadRegisteredPlayers();
+		
+		// operacje na pliku zapisanych gier
+		this.Filepath2 = "./saves.dat"; 
+		File f2 = new File(this.Filepath2);
+		if(!f2.exists()) { 
+			try {
+				f2.createNewFile();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				System.out.println("Problem z utworzeniem pliku zapisanych gier");
+				e.printStackTrace();
+			}
+		}
+		this.uploadSavedGames();
+		
 	}
+
 
 	/**
 	 * Metoda wykonuje się po uruchomieniu egzemplarza wątku serwera. Akceptuje w pętli przychodzących klientów
@@ -111,6 +135,30 @@ public class Server implements Runnable{
 	}
    
    /**
+    * Metoda wczytująca plik zapisanych gier do lokalnej tablicy
+    */
+	public  synchronized void uploadSavedGames() {
+		try {
+			this.SavedDataIn = new ObjectInputStream(new FileInputStream(this.Filepath2));
+			int i = 0;
+			System.out.println("Zarejestrowani :");
+			GameSaved p;
+			while((p = (GameSaved)this.SavedDataIn.readObject())!=null && i<this.MaxSavedGames){
+				this.SavedGames[i].setId(i);
+				this.SavedGames[i] = p;
+				System.out.println("zapisana gra : "+this.SavedGames[i].getNick1());
+				i = i+1;
+			}
+			this.SavedDataIn.close();
+		} catch (IOException | ClassNotFoundException e) {
+			
+		}
+		
+	}
+
+   
+   
+   /**
     * Metoda Zapisuje stan tablicy lokalnego pola tablicowego zarejestrowanych graczy do pliku
     */
    public synchronized void saveRegisteredPlayers(){
@@ -128,6 +176,25 @@ public class Server implements Runnable{
 			e.printStackTrace();
 		}
    }
+   
+   /**
+    * Metoda zapisuje zapisane gryz tablicy logicznej do pliku
+    */
+   public synchronized void saveSavedGames(){
+	   int i=0;
+	   try {
+		   this.SavedDataOut = new ObjectOutputStream(new FileOutputStream(this.Filepath2));
+		   	while(i<this.MaxSavedGames && this.SavedGames[i]!=null){
+		   		   this.SavedDataOut.writeObject(this.SavedGames[i]); 
+				   i=i+1;
+			}
+		   	this.SavedDataOut.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+   }
+   
 	
     /**
      * Metoda ustawiająca pary aktywnych graczy
@@ -175,8 +242,7 @@ public class Server implements Runnable{
 			}
 			return false;
 	}
-	
-	
+
 	/**
 	 * Metoda czyszcząca erlementy w tablicy wątków klienckich. Wywyoływana gdy kończymy pracę z klientem o danym identyfikatorze
 	 * @param id
@@ -231,10 +297,30 @@ public class Server implements Runnable{
 		ClientsThr = clientsThr;
 	}
 	
+	public GameSaved[] getSavedGames() {
+		return SavedGames;
+	}
+
+	public void setSavedGames(GameSaved[] savedGames) {
+		SavedGames = savedGames;
+	}
+
+
+	public int getMaxSavedGames() {
+		return MaxSavedGames;
+	}
+
+
+	public void setMaxSavedGames(int maxSavedGames) {
+		MaxSavedGames = maxSavedGames;
+	}
+
+
+
+
 	
 	
-	
-	
+	/*
 	public static void main(String[] args){
 		int port;
 		try{
@@ -249,6 +335,6 @@ public class Server implements Runnable{
 		}
 	}
 	
-  
+  	*/
 	
 }

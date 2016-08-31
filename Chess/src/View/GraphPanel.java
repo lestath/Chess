@@ -16,6 +16,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
+import CommunicationModel.GameSaved;
 import CommunicationModel.Pack;
 import Game.Board;
 import Game.Pawn;
@@ -42,9 +43,11 @@ public class GraphPanel extends JPanel implements MouseListener {
 	private BufferedImage GreenDotImg; // obrazek zielonej kropki
 	private JScrollPane Scroll; // panel scrollowany na tabelę z rankingiem 
 	private JScrollPane Scroll2; // panel scrollowany na tabelę ze stołami 
+	private JScrollPane Scroll3; // panel scrollowany na tabelę z zapisanymi grami
 	private JTable RankTab; // tabela rankingowa graczy;
 	private JTable TablesTab; // tabela stołów utworzonych przez graczy
-	private byte GameState; // flaga określająca w jakim trybie jest okno 0-pierwsze wejście, 1-ranking, 2-szachownica, 3-dostępne stoły
+	private JTable SavesTab;// tabela zapisanych gier
+	private byte GameState; // flaga określająca w jakim trybie jest okno 0-pierwsze wejście, 1-ranking, 2-szachownica, 3-dostępne stoły, 4-zapsane gry
 	private BufferedImage[] WhitePawnImgSet; // zestaw obrazków dla białych pionków
 	private BufferedImage[] BlackPawnImgSet; // zestaw obrazków dla czarnych pionków
 	private boolean GameStarted; // flaga określająca czy rozpoczęła się gra
@@ -106,6 +109,22 @@ public class GraphPanel extends JPanel implements MouseListener {
 					        return false;
 					    }
 				};
+		// inicjalizacja tabeli zapisanych gier
+				String[] cn3 = {"","Status przeciwnika","Przeciwnik"};
+				String[][] cv3 = new String[50][3];
+				for(int i =0;i<50;i++){
+					for(int j =0;j<2;j++){
+						cv2[i][j]= "";
+					}
+				}
+				this.SavesTab = new JTable(cv3,cn3){
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					    public boolean isCellEditable(int row, int column) {
+					        return false;
+					    }
+				};
 				
 				this.GameState = 0;
 				this.Scroll = new JScrollPane(this.RankTab);
@@ -114,8 +133,12 @@ public class GraphPanel extends JPanel implements MouseListener {
 				this.Scroll2 = new JScrollPane(this.TablesTab);
 				this.Scroll2.setPreferredSize(new Dimension(w-10,h-10));
 				this.Scroll2.setVisible(false);
+				this.Scroll3 = new JScrollPane(this.SavesTab);
+				this.Scroll3.setPreferredSize(new Dimension(w-10,h-10));
+				this.Scroll3.setVisible(false);
 				this.add(this.Scroll);
 				this.add(this.Scroll2);
+				this.add(this.Scroll3);
 		
 		// wczytanie obrazków dla zestawu pionków
 			 this.WhitePawnImgSet = new BufferedImage[16];
@@ -184,6 +207,7 @@ public class GraphPanel extends JPanel implements MouseListener {
 		}
 		this.GameState = 1;
 		this.Scroll2.setVisible(false);
+		this.Scroll3.setVisible(false);
 		this.Scroll.setVisible(true);
 		
 		this.repaint();	
@@ -192,9 +216,10 @@ public class GraphPanel extends JPanel implements MouseListener {
 	/**
 	 * Metoda pokazuje Dostępne stoły na panelu graficznym w postaci tabeli
 	 * @param players
+	 * 			Tablica graczy
 	 */
 	public void showTables(Player[] players){
-		if(players==null)return;
+		//if(players==null)return;
 		int i=0; 
 		for(i=0;i<50;i++){
 			this.TablesTab.setValueAt("",i,0);
@@ -207,11 +232,46 @@ public class GraphPanel extends JPanel implements MouseListener {
 			i = i+1;
 		}
 		this.GameState = 3;
+		this.Scroll3.setVisible(false);
 		this.Scroll2.setVisible(true);
 		this.Scroll.setVisible(false);
 		this.repaint();	
 	}
 	
+	/**
+	 * Metoda pokazuje zapisane gry na panelu graficznym w postaci tabeli
+	 * @param games
+	 * 			Tablica zapisanych gier
+	 */
+	public void showSaves(GameSaved[] games){
+		String nick;
+		int i=0; 
+		for(i=0;i<50;i++){
+			this.SavesTab.setValueAt("",i,0);
+			this.SavesTab.setValueAt("",i,1);
+		}
+		i=0;
+		while(i<50 && games[i]!=null){
+			this.SavesTab.setValueAt(Integer.toString(games[i].getId()),i,0);
+			if(games[i].isAllowPlay()){
+				this.SavesTab.setValueAt("dostępny",i,1);
+			}else{
+				this.SavesTab.setValueAt("niedostępny",i,1);
+			}
+			nick = games[i].getNick1();
+			if(nick.equals(this.Frame.getMyClient().getMyPlayer().getNick())){
+				nick = games[i].getNick2();
+			}
+			this.SavesTab.setValueAt(nick,i,2);
+			i = i+1;
+		}
+		this.GameState = 4;
+		
+		this.Scroll2.setVisible(false);
+		this.Scroll.setVisible(false);
+		this.Scroll3.setVisible(true);
+		this.repaint();	
+	}
 	
 	/**
 	 * Metoda przugotowująca panel graficzny do gry
@@ -230,7 +290,7 @@ public class GraphPanel extends JPanel implements MouseListener {
 			if(this.GameStarted){ // jeżeli gra rozpoczeta
 				showActualBoard(g2d);
 			}
-		}else if(GameState == 1 || GameState==3){
+		}else if(GameState == 1 || GameState==3 || GameState==4){
 			g2d.clearRect(0,0,this.getWidth(),this.getHeight());
 			this.updateUI();
 		}else{

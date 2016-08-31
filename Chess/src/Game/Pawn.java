@@ -2,6 +2,7 @@ package Game;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.Serializable;
 
 import javax.imageio.ImageIO;
 
@@ -10,8 +11,12 @@ import javax.imageio.ImageIO;
  * Klasa reprezentująca pionek na szachownicy
  *
  */
-public class Pawn {
-	// stałe
+public class Pawn implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+			// stałe
 		//kolor pionka
 	   		public static final int BLACK = 1;
 	   		public static final int WHITE = 2;

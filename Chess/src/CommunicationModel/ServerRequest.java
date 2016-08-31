@@ -105,6 +105,11 @@ public class ServerRequest extends Thread {
 						pack.setPlayers(this.giveTabList());
 						this.sentPack(pack);
 					break;
+					case "GIVE_SAVED_GAMES" : // prośba o listę zapsanych gier
+						pack = new Pack("SAVED_GAMES_RESP");// wysłanie listy graczy posiadających stół
+						pack.setSaves(this.giveSavedGamesList());
+						this.sentPack(pack);
+					break;
 					case "SELECT_OPONENT" : //prośba o skojarzenie z wybranym przeciwnikiem
 						String nick = pck.getPlayer().getNick();
 						System.out.println("Wybrany przeciwnik na serwie "+nick);
@@ -289,6 +294,58 @@ public class ServerRequest extends Thread {
 		}
 		return apt;
 	}
+	
+	
+	
+	/**
+	 * Metoda kompletująca tablicę zapisanych gier, w których uczestniczy gracz
+	 */
+	public GameSaved[] giveSavedGamesList(){
+		String nick;
+		String nick1;
+		String nick2;
+		GameSaved[] apt = new GameSaved[this.Serv.getMaxSavedGames()]; //tablica graczy 
+		int j=0;
+		for(int i =0;i<this.Serv.getMaxSavedGames();i++){
+			if(this.Serv.getSavedGames()[i]!=null){
+				nick1 = this.Serv.getSavedGames()[i].getNick1();
+				nick2 = this.Serv.getSavedGames()[i].getNick2();
+				nick = nick1;
+				if(nick1.equals(this.Client.getNick()) || nick2.equals(this.Client.getNick())){
+				  if(nick.equals(this.Client.getNick())){nick = nick2;}
+				  apt[j]=this.Serv.getSavedGames()[i];
+				  if(this.isClientAllowToPlay(nick)){apt[i].setAllowPlay(true);}else{apt[i].setAllowPlay(false);}
+				  j=j+1;
+				}
+			}
+		}
+		return apt;
+	}
+	
+	/**
+	 * Metoda sprawdzająca czy klient o podanym nicku jest aktywny
+	 * @paran nick
+	 * 		Nazwa gracza do wyszukania
+	 * @return
+	 * 		Zwraca true jeżeli znalazł się aktywny klient o podanym nicku
+	 */
+	public boolean isClientAllowToPlay(String nick){
+		ServerRequest req;
+		for(int i=0;i<this.Serv.getMaxActiveClients();i++){
+			if(this.Serv.getClientsThr()[i]!=null){
+				req= this.Serv.getClientsThr()[i];
+				if(req.getClient().getNick().equals(nick)){
+					if(this.Serv.getClientsActivity()[(int)req.getId()][0] && this.Serv.getClientsActivity()[(int)req.getId()][1]==false ){
+						if(req.getOponentID()==-1){
+							return true;
+						}
+					}
+				}
+			}
+		}
+		return false;
+	}
+	
 	
 	/**
 	 * Metoda zwracająca id przeciwnika

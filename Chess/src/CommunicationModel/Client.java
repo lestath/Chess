@@ -169,6 +169,14 @@ public class Client implements Runnable{
 								}
 							}
 						break;
+						case "SAVED_GAMES_RESP" : // wiadomość o dostarczeniu listy zapisanych gier 
+							if(this.PlayerPanel!=null){
+								if(this.PlayerPanel.getSidePanel()!=null){
+									this.PlayerPanel.getSidePanel().showSaves(this.InPack.getSaves()); // przekazanie pakietu z dostępnymi stołami do panelu graficznego
+									this.PlayerPanel.setMsg("Zapisane gry",Color.WHITE);
+								}
+							}
+						break;
 						case "OPONENT_SELECT_FAILED" : // wiadomość o niepowodzeniu wybrania przeciwnika
 							if(this.PlayerPanel!=null){
 									this.PlayerPanel.setMsg("Akcja nie powiodła się - spróbuj ponownie, lub wybierz kogoś innego",Color.RED);

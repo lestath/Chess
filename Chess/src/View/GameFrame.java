@@ -42,6 +42,8 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 	private JButton StartGameBtn; // przycisk rozpoczecia gry po dokonaniu wyboru stołu
 	private JButton ExitTableBtn; // przycisk opuszczenia stołu
 	private JButton DrawProposeBtn; // przycisk propozycji remisu
+	private JButton SavedGamesBtn; // przycisk listy zapisanych gier
+	private JButton SaveGameBtn; // przycisk zapisania gry
 	private JLabel PlayerLab; // etykieta informacji o graczu
 	private JLabel ColorLab;
 	private JLabel OponentLab;
@@ -124,6 +126,13 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 			 this.JoinGameBtn.setBackground(Color.black);
 			 this.JoinGameBtn.setForeground(Color.WHITE);
 			 
+			 this.SavedGamesBtn = new JButton("Wczytaj grę");
+			 this.SavedGamesBtn.setPreferredSize(btndim);
+			 this.SavedGamesBtn.addActionListener(this);
+			 this.SavedGamesBtn.setFocusPainted(false);
+			 this.SavedGamesBtn.setBackground(Color.black);
+			 this.SavedGamesBtn.setForeground(Color.WHITE);
+			 
 			 this.RankBtn = new JButton("Ranking");
 			 this.RankBtn.setPreferredSize(btndim);
 			 this.RankBtn.addActionListener(this);
@@ -138,6 +147,14 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 			 this.DrawProposeBtn.setBackground(Color.black);
 			 this.DrawProposeBtn.setForeground(Color.WHITE);
 			 this.DrawProposeBtn.setEnabled(false);
+			 
+			 this.SaveGameBtn = new JButton("Zapisz grę");
+			 this.SaveGameBtn.setPreferredSize(btndim);
+			 this.SaveGameBtn.addActionListener(this);
+			 this.SaveGameBtn.setFocusPainted(false);
+			 this.SaveGameBtn.setBackground(Color.black);
+			 this.SaveGameBtn.setForeground(Color.WHITE);
+			 this.SaveGameBtn.setEnabled(false);
 			 
 			 this.ExitTableBtn = new JButton("Opuść stół");
 			 this.ExitTableBtn.setPreferredSize(btndim);
@@ -175,9 +192,11 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 			 btnpanel.add(separatelabel);
 			 btnpanel.add(this.NewBoardBTn);
 			 btnpanel.add(this.JoinGameBtn);
+			 btnpanel.add(this.SavedGamesBtn);
 			 btnpanel.add(this.RankBtn);
 			 btnpanel.add(this.StartGameBtn);
 			 btnpanel.add(this.DrawProposeBtn);
+			 btnpanel.add(this.SaveGameBtn);
 			 btnpanel.add(this.ExitTableBtn);
 			 btnpanel.add(separatelabel2);
 			 btnpanel.add(this.ExitBtn);
@@ -212,13 +231,19 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 			this.myClient.sendPack(pck);
 			this.setBtnsAct(t,t,t,t,f,f,t);
 		}else if(obj == this.StartGameBtn){
-			this.setBtnsAct(f,f,f,f,t,t,t);
-			int row = this.SidePanel.getTablesTab().getSelectedRow();
-			if(row == -1){row = 0;}
-			Player p = new Player(this.SidePanel.getTablesTab().getModel().getValueAt(row,1).toString(),"");
-			pck = new Pack("SELECT_OPONENT");
-			pck.setPlayer(p);
-			this.myClient.sendPack(pck);
+			if(this.SidePanel!=null){
+				if(this.SidePanel.getGameState()==3){
+					this.setBtnsAct(f,f,f,f,t,t,t);
+					int row = this.SidePanel.getTablesTab().getSelectedRow();
+					if(row == -1){row = 0;}
+					Player p = new Player(this.SidePanel.getTablesTab().getModel().getValueAt(row,1).toString(),"");
+					pck = new Pack("SELECT_OPONENT");
+					pck.setPlayer(p);
+					this.myClient.sendPack(pck);
+				}else if(this.SidePanel.getGameState()==4){
+					//TODO oprogramowanie prośby o wczytanie gry
+				}
+			}
 		}else if(obj == this.ExitBtn){
 			this.exitProcedure();
 		}else if(obj == this.ExitTableBtn){
@@ -231,6 +256,12 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 			pck = new Pack("MAKE_MOVE");
 			pck.setCheck(Pack.DRAW_PROPOSE);
 			this.myClient.sendPack(pck);
+		}else if(obj == this.SavedGamesBtn){
+			this.setBtnsAct(t,t,t,t,f,f,t);
+			pck = new Pack("GIVE_SAVED_GAMES");
+			this.myClient.sendPack(pck);
+		}else if(obj == this.SaveGameBtn){
+			//TODO oprogramowanie zapisu gry
 		}
 	}
 
