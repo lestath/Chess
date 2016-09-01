@@ -93,6 +93,7 @@ public class Server implements Runnable{
 	public void run(){
 		// TODO Auto-generated method stub
 		try {
+			int j=0;
 			this.Sck = new ServerSocket(this.Port);
 			System.out.println("Serwer nasłuch na porcie : "+this.Port);
 			while(Accept){
@@ -107,6 +108,8 @@ public class Server implements Runnable{
 						 break;
 					 }
 				 }
+				 if(j==1)break;
+				 j++;
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -141,11 +144,9 @@ public class Server implements Runnable{
 		try {
 			this.SavedDataIn = new ObjectInputStream(new FileInputStream(this.Filepath2));
 			int i = 0;
-			System.out.println("Zarejestrowani :");
 			GameSaved p;
 			while((p = (GameSaved)this.SavedDataIn.readObject())!=null && i<this.MaxSavedGames){
-				this.SavedGames[i].setId(i);
-				this.SavedGames[i] = p;
+				this.SavedGames[i] = new GameSaved(i,p.getNick1(),p.getNick2(),p.getColor(),p.isMove(),p.getBoard(),p.isAllowPlay());
 				System.out.println("zapisana gra : "+this.SavedGames[i].getNick1());
 				i = i+1;
 			}
@@ -193,6 +194,7 @@ public class Server implements Runnable{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	   System.out.println("Zapis tablicy gier do pliku");
    }
    
 	

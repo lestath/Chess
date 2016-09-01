@@ -1,6 +1,8 @@
 package Game;
 
 
+import java.io.Serializable;
+
 import View.GraphPanel;
 
 /**
@@ -8,7 +10,11 @@ import View.GraphPanel;
  * Klasa reprezentująca szachownicę
  *
  */
-public class Board {
+public class Board implements Serializable{
+		/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 		public static final int BLACK_ON_BOTTOM=1; // stała oznaczająca, że gracz jest czarny
 		public static final int WHITE_ON_BOTTOM=2;// stała oznaczająca, że gracz jest biały
 		public static final int MY_CONTEXT = 0; // stała oznaczająca, że sprawdzamy coś z prespektywy gracza 
@@ -28,7 +34,7 @@ public class Board {
 		private boolean[][] KingDanger;// tablica przetrzymuje pozycje zagrożenia króla szachem po przesunięciu na dane pole 
 		private int Context; // pole kontekstu sprawdzania ruchu pionka 0 zwykły 1 w kontekście mata
 		private boolean Lock; // zamek zapobiegający przejściu w rekurencję przy sprawdzaniu ruchów pionka
-		
+		private boolean MyMove; // flaga oznaczona na true oznacza ruch gracza
 		
 		public Board(GraphPanel graph,int colorflag){
 			this.MyColor=colorflag;
@@ -43,6 +49,7 @@ public class Board {
 			this.AllowPawnMovesBoard = new int[8][8];
 			this.Context = Board.NO_MAT_CONTEXT;
 			this.Lock = true;
+			this.MyMove = false;
 			for(int i=0;i<8;i++){
 				for(int j=0;j<8;j++){
 					this.MyBoard[i][j]=null;
@@ -886,6 +893,12 @@ public class Board {
 
 		public void setLogicBoard(int[][] logicBoard) {
 			LogicBoard = logicBoard;
+		}
+		public boolean isMyMove() {
+			return MyMove;
+		}
+		public void setMyMove(boolean myMove) {
+			MyMove = myMove;
 		}
 		
 		

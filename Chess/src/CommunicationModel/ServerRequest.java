@@ -46,7 +46,7 @@ public class ServerRequest extends Thread {
 			out = new ObjectOutputStream(ClientSck.getOutputStream());
 			in = new ObjectInputStream(ClientSck.getInputStream());
 		} catch (IOException e) {
-			//TODO - obsługa błędu wejścia 
+			e.printStackTrace();
 		}
 	}
 	
@@ -83,6 +83,7 @@ public class ServerRequest extends Thread {
 							 pack = new Pack("LOG_SUCCESS"); // wysłanie komuniaktu o poprawnym zalogowaniu
 							 this.Client = p;
 							this.Serv.getClientsActivity()[this.ClientID][0] = true;
+							this.Serv.getClientsActivity()[this.ClientID][1] = false;
 							pack.setPlayer(p);
 							this.sentPack(pack);
 							System.out.println("Login klienta: "+this.Client.getNick());
@@ -109,10 +110,11 @@ public class ServerRequest extends Thread {
 						pack = new Pack("SAVED_GAMES_RESP");// wysłanie listy graczy posiadających stół
 						pack.setSaves(this.giveSavedGamesList());
 						this.sentPack(pack);
+						pack.setSaves(null);
+						pack = null;
 					break;
 					case "SELECT_OPONENT" : //prośba o skojarzenie z wybranym przeciwnikiem
 						String nick = pck.getPlayer().getNick();
-						System.out.println("Wybrany przeciwnik na serwie "+nick);
 						if(this.findOponent(nick)){
 							pack = new Pack("START_GAME");
 							pack.setColor(Pawn.BLACK);
@@ -134,9 +136,18 @@ public class ServerRequest extends Thread {
 						this.exitProcedure();
 						pack = new Pack("EXIT_SUCCESS");
 						this.Serv.getClientsActivity()[this.ClientID][0] = false;
+						this.Serv.getClientsActivity()[this.ClientID][1] = false;
 						this.Serv.getClientsThr()[this.ClientID] = null;
 						this.Running = false;
 						this.sentPack(pack);
+					break;
+					case "SAVE_GAME" : // prośba o zapisanie gry
+						Pack savepack = new Pack("GAME_SAVED"); // pakiet z informacją dla klientów o zapisaniu gry;
+						this.InsertSavedGame(pck.getSaves()[0]);
+						this.sentPack(savepack);
+						if(this.OponentID!=-1){
+							this.Serv.getClientsThr()[this.OponentID].sentPack(savepack);
+						}
 					break;
 					case "MAKE_MOVE" : // informacja o wykonaniu ruchu, musi zostać przekazana do przeciwnika
 						if(OponentID<50 && OponentID>-1){
@@ -197,7 +208,6 @@ public class ServerRequest extends Thread {
 			this.in.close();
 			this.ClientSck.close();
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 	}
@@ -214,7 +224,6 @@ public class ServerRequest extends Thread {
 			if(this.Serv.getClientsThr()[this.OponentID]!=null){
 				this.Serv.getClientsThr()[this.OponentID].setOponentID(-1);
 				this.Serv.getClientsThr()[this.OponentID].sentPack(pack);
-				
 			}
 			this.OponentID = -1;
 		}
@@ -253,7 +262,6 @@ public class ServerRequest extends Thread {
 			}
 			i++;
 		}		
-		System.out.println("Weszło do metody gromadzenia rankingu");
 		return sort;
 	}
 	
@@ -265,8 +273,8 @@ public class ServerRequest extends Thread {
 	public void sentPack(Pack pck){
 		try {
 			this.out.writeObject(pck);
+			this.out.flush();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -310,16 +318,50 @@ public class ServerRequest extends Thread {
 			if(this.Serv.getSavedGames()[i]!=null){
 				nick1 = this.Serv.getSavedGames()[i].getNick1();
 				nick2 = this.Serv.getSavedGames()[i].getNick2();
+				this.Serv.getSavedGames()[i].setAllowPlay(0);
 				nick = nick1;
 				if(nick1.equals(this.Client.getNick()) || nick2.equals(this.Client.getNick())){
 				  if(nick.equals(this.Client.getNick())){nick = nick2;}
+				  if(this.isClientAllowToPlay(nick)){this.Serv.getSavedGames()[i].setAllowPlay(1);}else{this.Serv.getSavedGames()[i].setAllowPlay(0);}
 				  apt[j]=this.Serv.getSavedGames()[i];
-				  if(this.isClientAllowToPlay(nick)){apt[i].setAllowPlay(true);}else{apt[i].setAllowPlay(false);}
 				  j=j+1;
 				}
 			}
 		}
 		return apt;
+	}
+	/**
+	 * Metoda znajdująca miejsce na zapisaną grę w tablicy i zapisująca
+	 * @param save
+	 * 			Gra do zapisania
+	 */
+	public void InsertSavedGame(GameSaved save){
+		if(save==null)return;
+		System.out.println("Próba zapisu gry");
+		GameSaved s;
+		for(int i=0;i<this.Serv.getMaxSavedGames();i++){
+			s= this.Serv.getSavedGames()[i];
+			if(s!=null){
+				if(s.getNick1()== save.getNick1() || s.getNick1()== save.getNick2()){
+					if(s.getNick2() == save.getNick1() || s.getNick2()==save.getNick2()){
+						this.Serv.getSavedGames()[i]=save;
+						this.Serv.saveSavedGames();
+						this.Serv.uploadSavedGames();
+						return;
+					}
+				}
+			}
+		}
+		
+		for(int i=0;i<this.Serv.getMaxSavedGames();i++){
+			s=this.Serv.getSavedGames()[i];
+			if(s==null){
+				this.Serv.getSavedGames()[i]=save;
+				this.Serv.saveSavedGames();
+				this.Serv.uploadSavedGames();
+				return;
+			}
+		}
 	}
 	
 	/**
@@ -334,8 +376,10 @@ public class ServerRequest extends Thread {
 		for(int i=0;i<this.Serv.getMaxActiveClients();i++){
 			if(this.Serv.getClientsThr()[i]!=null){
 				req= this.Serv.getClientsThr()[i];
+				System.out.println(nick);
+				System.out.println(req.getClient().getNick());
 				if(req.getClient().getNick().equals(nick)){
-					if(this.Serv.getClientsActivity()[(int)req.getId()][0] && this.Serv.getClientsActivity()[(int)req.getId()][1]==false ){
+					if((this.Serv.getClientsActivity()[i][1]==false) && this.Serv.getClientsActivity()[i][0]){
 						if(req.getOponentID()==-1){
 							return true;
 						}
@@ -450,7 +494,7 @@ public class ServerRequest extends Thread {
 		int i = 0;
 		if(this.Client==null)return;
 		if(this.OponentID==-1)return;
-		while(i<this.Serv.getRegisteredPlayers().length && this.Serv.getRegisteredPlayers()[i]!=null){
+		while(this.Serv.getRegisteredPlayers()[i]!=null && i<this.Serv.getRegisteredPlayers().length){
 			if(this.Serv.getClientsThr()[this.OponentID].getClient().getNick().equals(Serv.getRegisteredPlayers()[i].getNick())){
 				if(end_context==ServerRequest.END_CONTEXT_WALKOVER || end_context==ServerRequest.END_CONTEXT_MAT ){
 					Serv.getRegisteredPlayers()[i].setWins(Serv.getRegisteredPlayers()[i].getWins()+1);
@@ -471,7 +515,6 @@ public class ServerRequest extends Thread {
 		try { // uśpienie wątku na czas wykonania zadania
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		this.Serv.uploadRegisteredPlayers();

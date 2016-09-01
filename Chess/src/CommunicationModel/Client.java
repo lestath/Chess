@@ -146,14 +146,11 @@ public class Client implements Runnable{
 						case "RESP_RANK" : // wiadomość o dostarczeniu rankingu
 							if(this.PlayerPanel!=null){
 								if(this.PlayerPanel.getSidePanel()!=null){
-									for(int i=0;i<this.InPack.getPlayers().length;i++){
-										if(this.InPack.getPlayers()[i]!=null)System.out.println(">>> "+this.InPack.getPlayers()[i].getWins());
-									}
 									this.PlayerPanel.getSidePanel().showRanking(this.InPack.getPlayers()); // przekazanie pakietu z rankingiem do wyświetlenia w panelu graficznym
 								}
 							}
 						break;
-						case "NEW_TABLE_CONFIRM" : // wiadomość o dostarczeniu rankingu
+						case "NEW_TABLE_CONFIRM" : // wiadomość o otwarciu nowego stołu
 							if(this.PlayerPanel!=null){
 								if(this.PlayerPanel.getSidePanel()!=null){
 									this.PlayerPanel.getSidePanel().prepareTableToGame(); // przekazanie pakietu z rankingiem do wyświetlenia w panelu graficznym
@@ -176,11 +173,13 @@ public class Client implements Runnable{
 									this.PlayerPanel.setMsg("Zapisane gry",Color.WHITE);
 								}
 							}
+							this.InPack.setSaves(null);
+							this.InPack = null;
 						break;
 						case "OPONENT_SELECT_FAILED" : // wiadomość o niepowodzeniu wybrania przeciwnika
 							if(this.PlayerPanel!=null){
 									this.PlayerPanel.setMsg("Akcja nie powiodła się - spróbuj ponownie, lub wybierz kogoś innego",Color.RED);
-									this.PlayerPanel.setBtnsAct(t,t,t,t,f,f,t);
+									this.PlayerPanel.setBtnsAct(t,t,t,t,f,f,t,f);
 							}
 						break;
 						case "START_GAME" : // gra rozpoczyna się a wybierającym jest ten klient
@@ -191,7 +190,7 @@ public class Client implements Runnable{
 										this.PlayerPanel.getSidePanel().invertBoard();
 									}
 								}
-								this.PlayerPanel.setBtnsAct(f,f,f,f,t,t,t);
+								this.PlayerPanel.setBtnsAct(f,f,f,f,t,t,t,t);
 								this.PlayerPanel.getSidePanel().startGame(this.InPack.getColor());
 								String mycolor = "Czarny";
 								this.PlayerPanel.getColorLab().setText("Mój kolor : "+mycolor);
@@ -207,7 +206,7 @@ public class Client implements Runnable{
 									if(this.PlayerPanel.getSidePanel().isInvertedFlag()){
 										this.PlayerPanel.getSidePanel().invertBoard();
 									}
-									this.PlayerPanel.setBtnsAct(f,f,f,f,t,t,t);
+									this.PlayerPanel.setBtnsAct(f,f,f,f,t,t,t,t);
 									this.PlayerPanel.getSidePanel().startGame(this.InPack.getColor());
 									String mycolor = "Biały";
 									this.PlayerPanel.getColorLab().setText("Mój kolor : "+mycolor);
@@ -228,7 +227,7 @@ public class Client implements Runnable{
 									this.PlayerPanel.getSidePanel().setGameStarted(false);
 									this.PlayerPanel.getSidePanel().setGameState((byte)0);
 									this.PlayerPanel.getSidePanel().repaint();
-									this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t);
+									this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t,f);
 									this.PlayerPanel.getOponentLab().setText("");
 									this.PlayerPanel.getColorLab().setText("");
 								}
@@ -245,7 +244,7 @@ public class Client implements Runnable{
 								}else if(this.InPack.getCheck() == Pack.MATE){ // jeżeli wygrana
 									this.PlayerPanel.setMsg("Szach mat Wygrałeś",Color.GREEN);
 									this.PlayerPanel.getSidePanel().getMyBoard().lockAllPawns();
-									this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t);
+									this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t,f);
 									this.PlayerPanel.getOponentLab().setText("");
 									this.PlayerPanel.getColorLab().setText("");
 								}else if(this.InPack.getCheck()==Pack.DRAW_PROPOSE){
@@ -261,7 +260,7 @@ public class Client implements Runnable{
 								}else if(this.InPack.getCheck()==Pack.DRAW_YES){
 									if(this.PlayerPanel!=null){
 										this.PlayerPanel.setMsg("Gra zakończona remisem",Color.GREEN);
-										this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t);
+										this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t,f);
 										this.PlayerPanel.getOponentLab().setText("");
 										this.PlayerPanel.getColorLab().setText("");
 										if(this.PlayerPanel.getSidePanel()!=null){
@@ -281,7 +280,7 @@ public class Client implements Runnable{
 													pck = new Pack("MAKE_MOVE");
 													pck.setCheck(Pack.MATE);
 													this.PlayerPanel.getSidePanel().getMyBoard().lockAllPawns();
-													this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t);
+													this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t,f);
 													this.PlayerPanel.getOponentLab().setText("");
 													this.PlayerPanel.getColorLab().setText("");
 												}else{
@@ -303,12 +302,19 @@ public class Client implements Runnable{
 									Pawn swappawn;
 									swappawn=this.PlayerPanel.getSidePanel().getMyBoard().getPawnById(this.InPack.getPawnId());
 									swappawn.setStatus(this.InPack.getStatus());
-									swappawn.chosePict(this.InPack.getStatus());
 									this.PlayerPanel.getSidePanel().repaint();
 									this.PlayerPanel.setMsg("Przeciwnik zamienił pionek",Color.WHITE);
 								}
 							}
 						  }
+						break;
+						case "GAME_SAVED" :
+							  if(this.PlayerPanel!=null){
+									if(this.PlayerPanel.getSidePanel()!=null){
+											this.PlayerPanel.setMsg("Zapisano grę",Color.WHITE);
+											//TODO decyzja co po zapisaniu gry okienko wychodzę lub gramy dalej
+									}
+								  }
 						break;
 					}
 				}
@@ -337,8 +343,8 @@ public class Client implements Runnable{
 		 if(this.out!=null){
 			try {
 				this.out.writeObject(p);
+				this.out.flush();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		 }

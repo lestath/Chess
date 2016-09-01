@@ -20,6 +20,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import CommunicationModel.Client;
+import CommunicationModel.GameSaved;
 import CommunicationModel.Pack;
 import Game.Player;
 
@@ -184,7 +185,7 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 			 JLabel separatelabel = new JLabel();
 			 separatelabel.setPreferredSize(new Dimension(btndim.width,30));
 			 JLabel separatelabel2 = new JLabel();
-			 separatelabel2.setPreferredSize(new Dimension(btndim.width,250));
+			 separatelabel2.setPreferredSize(new Dimension(btndim.width,200));
 			 
 			 btnpanel.add(this.PlayerLab);
 			 btnpanel.add(this.ColorLab);
@@ -218,22 +219,22 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 		Object obj = arg0.getSource();
 		Pack pck; // pakiet do wysyłania
 		if(obj == this.RankBtn){
-			this.setBtnsAct(t,t,t,f,f,f,t);
+			this.setBtnsAct(t,t,t,f,f,f,t,f);
 			pck = new Pack("GIVE_RANK");
 			this.myClient.sendPack(pck);
 			System.out.println("Wsyłam");
 		}else if(obj == this.NewBoardBTn){
 			pck = new Pack("NEW_TABLE");
-			this.setBtnsAct(f,f,f,f,f,t,t);
+			this.setBtnsAct(f,f,f,f,f,t,t,f);
 			this.myClient.sendPack(pck);
 		}else if(obj == this.JoinGameBtn){
 			pck = new Pack("GIVE_TAB_LIST");
 			this.myClient.sendPack(pck);
-			this.setBtnsAct(t,t,t,t,f,f,t);
+			this.setBtnsAct(t,t,t,t,f,f,t,f);
 		}else if(obj == this.StartGameBtn){
 			if(this.SidePanel!=null){
 				if(this.SidePanel.getGameState()==3){
-					this.setBtnsAct(f,f,f,f,t,t,t);
+					this.setBtnsAct(f,f,f,f,t,t,t,t);
 					int row = this.SidePanel.getTablesTab().getSelectedRow();
 					if(row == -1){row = 0;}
 					Player p = new Player(this.SidePanel.getTablesTab().getModel().getValueAt(row,1).toString(),"");
@@ -248,20 +249,24 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 			this.exitProcedure();
 		}else if(obj == this.ExitTableBtn){
 			pck = new Pack("CLOSE_TABLE");
-			this.setBtnsAct(t,t,t,f,f,f,t);
+			this.setBtnsAct(t,t,t,f,f,f,t,f);
 			this.myClient.sendPack(pck);
 		}else if(obj==this.DrawProposeBtn){
-			this.setBtnsAct(f,f,f,f,f,t,t);
+			this.setBtnsAct(f,f,f,f,f,t,t,f);
 			setMsg("Zaproponowałeś remis",Color.WHITE);
 			pck = new Pack("MAKE_MOVE");
 			pck.setCheck(Pack.DRAW_PROPOSE);
 			this.myClient.sendPack(pck);
 		}else if(obj == this.SavedGamesBtn){
-			this.setBtnsAct(t,t,t,t,f,f,t);
+			this.setBtnsAct(t,t,t,t,f,f,t,f);
 			pck = new Pack("GIVE_SAVED_GAMES");
 			this.myClient.sendPack(pck);
 		}else if(obj == this.SaveGameBtn){
-			//TODO oprogramowanie zapisu gry
+			if(this.SidePanel.isGameStarted()){
+				pck = new Pack("SAVE_GAME");
+				pck.getSaves()[0]= new GameSaved(99,this.myClient.getMyPlayer().getNick(),this.OponentLab.getText().substring(13),this.SidePanel.getMyBoard().getMyColor(),this.SidePanel.getMyBoard().isMyMove(),this.SidePanel.getMyBoard().getMyBoard(),0);
+				this.myClient.sendPack(pck);
+			}
 		}
 	}
 
@@ -282,7 +287,7 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 	 * @param b7
 	 * 			Flaga przycisku "Wyjdź"
 	 */
-	public void setBtnsAct(boolean b1, boolean b2 , boolean b3, boolean b4, boolean b5, boolean b6, boolean b7){
+	public void setBtnsAct(boolean b1, boolean b2 , boolean b3, boolean b4, boolean b5, boolean b6, boolean b7,boolean b8){ // b8 zapisz grę
 		this.NewBoardBTn.setEnabled(b1);
 		this.JoinGameBtn.setEnabled(b2);
 		this.RankBtn.setEnabled(b3);
@@ -290,6 +295,8 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 		this.DrawProposeBtn.setEnabled(b5);
 		this.ExitTableBtn.setEnabled(b6);
 		this.ExitBtn.setEnabled(b7);
+		this.SaveGameBtn.setEnabled(b8);
+		
 	}
 	
 	/**
@@ -299,7 +306,7 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 		boolean t = true;
 		boolean f = false;
 		Pack p;
-		this.setBtnsAct(f,f,f,f,f,t,t);
+		this.setBtnsAct(f,f,f,f,f,t,t,f);
 		int selectedOption = JOptionPane.showConfirmDialog(null, 
                 "Przeciwnik zaproponował remis. Zgadzasz się?", 
                 "Choose", 
@@ -309,7 +316,7 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 				p = new Pack("MAKE_MOVE");
 				p.setCheck(Pack.DRAW_YES);
 				this.myClient.sendPack(p);
-				this.setBtnsAct(t,t,t,f,f,f,t);
+				this.setBtnsAct(t,t,t,f,f,f,t,f);
 				if(this.SidePanel!=null){
 					if(SidePanel.getMyBoard()!=null){
 						this.SidePanel.getMyBoard().lockAllPawns();
@@ -334,8 +341,7 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 
 	@Override
 	public void run() {
-		// TODO Auto-generated method stub
-		
+			
 	}
 
 	public JLabel getPlayerLab() {

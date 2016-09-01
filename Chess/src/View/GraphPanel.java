@@ -113,8 +113,8 @@ public class GraphPanel extends JPanel implements MouseListener {
 				String[] cn3 = {"","Status przeciwnika","Przeciwnik"};
 				String[][] cv3 = new String[50][3];
 				for(int i =0;i<50;i++){
-					for(int j =0;j<2;j++){
-						cv2[i][j]= "";
+					for(int j =0;j<3;j++){
+						cv3[i][j]= "";
 					}
 				}
 				this.SavesTab = new JTable(cv3,cn3){
@@ -249,15 +249,16 @@ public class GraphPanel extends JPanel implements MouseListener {
 		for(i=0;i<50;i++){
 			this.SavesTab.setValueAt("",i,0);
 			this.SavesTab.setValueAt("",i,1);
+			this.SavesTab.setValueAt("",i,2);
 		}
 		i=0;
 		while(i<50 && games[i]!=null){
 			this.SavesTab.setValueAt(Integer.toString(games[i].getId()),i,0);
-			if(games[i].isAllowPlay()){
-				this.SavesTab.setValueAt("dostępny",i,1);
-			}else{
-				this.SavesTab.setValueAt("niedostępny",i,1);
+			String availible = "dostępny";
+			if(games[i].isAllowPlay()==0){
+				availible = "niedostępny";
 			}
+			this.SavesTab.setValueAt(availible,i,1);
 			nick = games[i].getNick1();
 			if(nick.equals(this.Frame.getMyClient().getMyPlayer().getNick())){
 				nick = games[i].getNick2();
@@ -266,7 +267,6 @@ public class GraphPanel extends JPanel implements MouseListener {
 			i = i+1;
 		}
 		this.GameState = 4;
-		
 		this.Scroll2.setVisible(false);
 		this.Scroll.setVisible(false);
 		this.Scroll3.setVisible(true);
@@ -279,6 +279,7 @@ public class GraphPanel extends JPanel implements MouseListener {
 	public void prepareTableToGame(){
 		this.Scroll.setVisible(false);
 		this.Scroll2.setVisible(false);
+		this.Scroll3.setVisible(false);
 		this.GameState = 2;
 		this.repaint();
 	}
@@ -303,6 +304,8 @@ public class GraphPanel extends JPanel implements MouseListener {
 	 * Metoda rysująca na panelu graficznym aktualny stan pionków
 	 */
 	private void showActualBoard(Graphics2D g2d){
+		BufferedImage[] set;
+		BufferedImage img = null;
 		Pawn p=null;
 		for(int i=0;i<8;i++){
 			for(int j=0;j<8;j++){
@@ -310,7 +313,30 @@ public class GraphPanel extends JPanel implements MouseListener {
 					p=this.MyBoard.getMyBoard()[i][j];
 					if(p.isActive()){
 						p.calcCordstoGraph();
-						g2d.drawImage(p.getImg(),null,p.getGraphCordX(),p.getGraphCordY());
+						if(p.getColor() == Pawn.BLACK){ set = this.BlackPawnImgSet; }else{ set = this.WhitePawnImgSet;}
+						switch(p.getStatus()){
+						case Pawn.PAWN:
+							img = set[0];
+						break;
+						case Pawn.ROCK:
+							img = set[8];
+						break;
+						case Pawn.HORSE:
+							img = set[9];
+						break;
+						case Pawn.BISHOP:
+							img = set[10];
+						break;
+						case Pawn.QUEEN:
+							img = set[12];
+						break;
+						case Pawn.KING:
+							img = set[11];
+						break;
+						
+					
+					}
+						g2d.drawImage(img,null,p.getGraphCordX(),p.getGraphCordY());
 					}
 				}
 				p=null;
@@ -461,7 +487,6 @@ public class GraphPanel extends JPanel implements MouseListener {
 							p.setStatus(Pawn.BISHOP);
 						break;
 					}
-					p.chosePict(p.getStatus());
 					Pack pck = new Pack("SWAP_PAWN");
 					pck.setPawnId(p.getId());
 					pck.setStatus(p.getStatus());

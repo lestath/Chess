@@ -1,10 +1,6 @@
 package Game;
 
-import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.io.Serializable;
-
-import javax.imageio.ImageIO;
 
 /**
  * 
@@ -29,7 +25,6 @@ public class Pawn implements Serializable {
 	   		public static final int QUEEN = 5;
 	   		
 	private int Id; // identyfikator pionka
-	private BufferedImage Img; // obrazek pionka
 	private int X; // współrzędna X na szachownicy
 	private int Y;//współrzędna Y na szachownicy
 	private int GraphCordX;// współrzędna X obrazka pionka w panelu graficznym
@@ -43,14 +38,12 @@ public class Pawn implements Serializable {
 	public Pawn(int id,int status,int color,int cx,int cy){
 		this.Id = id;
 		this.setStatus(status);
-		this.Img = null;
 		this.Color=color;
 		this.X = cx;
 		this.Y = cy;
 		this.GraphCordX = 0;
 		this.GraphCordY = 0;
 		this.Active = true;
-		this.chosePict(status);
 		this.MoveCounter = 0;
 		this.AllowMove=true;
 	}
@@ -60,12 +53,6 @@ public class Pawn implements Serializable {
 	}
 	public void setId(int id) {
 		Id = id;
-	}
-	public BufferedImage getImg() {
-		return Img;
-	}
-	public void setImg(BufferedImage img) {
-		Img = img;
 	}
 	public int getX() {
 		return X;
@@ -112,44 +99,7 @@ public class Pawn implements Serializable {
 
 	public void setColor(int color) {
 		Color = color;
-	}
-	
-	/**
-	 * Metoda dobiera odpowiedni obrazek w zależności od podanego statusu pionka
-	 * @param stat
-	 * 			Stała statusu pionka
-	 */
-	public void chosePict(int stat){
-		String col = "white";
-		String clas="pawn";
-		if(this.Color==Pawn.BLACK){ col="black";}
-		switch(stat){
-				case Pawn.PAWN:
-				break;
-				case Pawn.ROCK:
-				 clas="tower";
-				break;
-				case Pawn.HORSE:
-					 clas="horse";
-				break;
-				case Pawn.BISHOP:
-					 clas="bishop";
-				break;
-				case Pawn.QUEEN:
-					 clas="queen";
-				break;
-				case Pawn.KING:
-					 clas="king";
-				break;
-				
-			
-			}
-		try{
-			this.Img = ImageIO.read(getClass().getResource("/img/pawns/"+col+"_"+clas+".png"));
-		}catch(IOException e){
-			e.printStackTrace();
-		}
-	}
+	}	
 	
 	/**
 	 * Metoda przelicza współrzędne logiczne pionka na rzeczywiste współrzędne obrazka na grafice (wyniki zapisywane są do pól lokalnych)

@@ -32,11 +32,11 @@ public class Pack implements Serializable{
 	private int Check; // oznaczenie wystapienia zdarzenia szczególnego jak szach/mat
 	private int CheckPawnId;// identyfikator pionka szachującego
 	private int Status; // nowy status pionka jeżeli wiadomość o zmianie statusu
+
 	
 	public Pack(String msg){
 		this.Message = msg;
 		this.player = null;
-		this.saves = null;
 		this.setPlayers(null);
 		this.setColor(0);
 		this.setCheck(0);
@@ -44,6 +44,7 @@ public class Pack implements Serializable{
 		this.Nick = "";
 		this.Status = -1;
 		this.Check = -1;
+		this.saves = new GameSaved[100];
 	}
 	
 	
@@ -184,9 +185,15 @@ public class Pack implements Serializable{
 
 
 	public void setSaves(GameSaved[] saves) {
-		this.saves = saves;
+		if(saves==null){
+			this.saves=null;
+			return;
+		}
+		this.saves = new GameSaved[100];
+		for(int i =0;i<saves.length;i++){
+			if(saves[i]!=null){
+			this.saves[i]=new GameSaved(saves[i].getId(),saves[i].getNick1(),saves[i].getNick2(),saves[i].getColor(),saves[i].isMove(),saves[i].getBoard(),saves[i].isAllowPlay());
+			}
+		}
 	}
-	
-	
-
 }

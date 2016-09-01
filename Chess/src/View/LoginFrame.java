@@ -16,7 +16,6 @@ import javax.swing.JTextField;
 
 import CommunicationModel.Client;
 import CommunicationModel.Pack;
-import CommunicationModel.Server;
 import Game.Player;
 
 /**
@@ -50,8 +49,6 @@ public class LoginFrame extends JFrame implements ActionListener {
 	
 	public LoginFrame(){
 		super("Chess");
-		//TODO w celach testowych wewnątrz eclipse odkomentować natomiast zakomentować przy przenoszeniu aplikacji do .jar
-		new Thread(new Server(4448)).start();
 		this.MyClient = new Client[10];
 		this.setSize(300,250);
 	    this.addWindowListener(new WindowAdapter() {

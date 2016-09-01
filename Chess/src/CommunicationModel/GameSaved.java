@@ -14,20 +14,21 @@ public class GameSaved implements Serializable{
 	 */
 	private static final long serialVersionUID = 1L;
 	private int Id;
-	private boolean AllowPlay; // flaga ustawiona na true oznacza, że obaj gracze uczestniczący są aktywni i można rozpocząć
+	private int AllowPlay; // flaga ustawiona na 1, że obaj gracze uczestniczący są aktywni i można rozpocząć
 	private String Nick1; // nick pierwszego gracza
 	private String Nick2; // nick drugiego gracza
 	private int Color;	// kolor jakim grał gracz pierwszy
 	private boolean Move; // flaga ustanowiona na true oznacza, że pierwszy gracz miał ruch w czasie zapisu
 	private Pawn[][] Board; // ustawienie pionków na szachownicy
 	
-	public GameSaved(String n1, String n2, int color, Pawn[][] board){
-		this.AllowPlay = false;
-		this.Id = 99;
+	public GameSaved(int id,String n1, String n2, int color,boolean move,Pawn[][] board,int allow){
+		this.AllowPlay = allow;
+		this.Id = id;
 		this.Nick1 = n1;
 		this.Nick2 = n2;
 		this.Color = color;
 		this.Board = new Pawn[8][8];
+		this.Move = move;
 		for(int i=0; i<8; i++){
 			for(int j=0;j<8;j++){
 				this.Board[i][j]=board[i][j];
@@ -61,10 +62,10 @@ public class GameSaved implements Serializable{
 	public void setBoard(Pawn[][] board) {
 		Board = board;
 	}
-	public boolean isAllowPlay() {
+	public int isAllowPlay() {
 		return AllowPlay;
 	}
-	public void setAllowPlay(boolean allowPlay) {
+	public void setAllowPlay(int allowPlay) {
 		AllowPlay = allowPlay;
 	}
 
