@@ -8,6 +8,7 @@ import java.net.Socket;
 
 import View.GameFrame;
 import View.LoginFrame;
+import Game.Board;
 import Game.Pawn;
 import Game.Player;
 
@@ -132,12 +133,15 @@ public class Client implements Runnable{
 							this.PlayerPanel.getPlayerLab().setText(this.MyPlayer.getNick());
 							//this.Frame.setVisible(false);
 						break;
-						case "TABLE_CLOSED": //błąd logowania
+						case "TABLE_CLOSED": //zamknięcie stołu
 							if(this.PlayerPanel!=null){
 								if(this.PlayerPanel.getSidePanel()!=null){
 									this.PlayerPanel.setMsg("Zamknięto stół",Color.GREEN);
 									this.PlayerPanel.getSidePanel().setGameStarted(false);
 									this.PlayerPanel.getSidePanel().setGameState((byte)0);
+									this.PlayerPanel.getOponentLab().setText("");
+									this.PlayerPanel.getColorLab().setText("");
+									this.PlayerPanel.getMoveLab().setText("");
 									this.PlayerPanel.getSidePanel().repaint();
 									
 								}
@@ -179,7 +183,7 @@ public class Client implements Runnable{
 						case "OPONENT_SELECT_FAILED" : // wiadomość o niepowodzeniu wybrania przeciwnika
 							if(this.PlayerPanel!=null){
 									this.PlayerPanel.setMsg("Akcja nie powiodła się - spróbuj ponownie, lub wybierz kogoś innego",Color.RED);
-									this.PlayerPanel.setBtnsAct(t,t,t,t,f,f,t,f);
+									this.PlayerPanel.setBtnsAct(t,t,t,t,f,f,t,f,t);
 							}
 						break;
 						case "START_GAME" : // gra rozpoczyna się a wybierającym jest ten klient
@@ -190,7 +194,7 @@ public class Client implements Runnable{
 										this.PlayerPanel.getSidePanel().invertBoard();
 									}
 								}
-								this.PlayerPanel.setBtnsAct(f,f,f,f,t,t,t,t);
+								this.PlayerPanel.setBtnsAct(f,f,f,f,t,t,t,t,f);
 								this.PlayerPanel.getSidePanel().startGame(this.InPack.getColor());
 								String mycolor = "Czarny";
 								this.PlayerPanel.getColorLab().setText("Mój kolor : "+mycolor);
@@ -206,7 +210,7 @@ public class Client implements Runnable{
 									if(this.PlayerPanel.getSidePanel().isInvertedFlag()){
 										this.PlayerPanel.getSidePanel().invertBoard();
 									}
-									this.PlayerPanel.setBtnsAct(f,f,f,f,t,t,t,t);
+									this.PlayerPanel.setBtnsAct(f,f,f,f,t,t,t,t,f);
 									this.PlayerPanel.getSidePanel().startGame(this.InPack.getColor());
 									String mycolor = "Biały";
 									this.PlayerPanel.getColorLab().setText("Mój kolor : "+mycolor);
@@ -227,9 +231,10 @@ public class Client implements Runnable{
 									this.PlayerPanel.getSidePanel().setGameStarted(false);
 									this.PlayerPanel.getSidePanel().setGameState((byte)0);
 									this.PlayerPanel.getSidePanel().repaint();
-									this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t,f);
+									this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t,f,t);
 									this.PlayerPanel.getOponentLab().setText("");
 									this.PlayerPanel.getColorLab().setText("");
+									this.PlayerPanel.getMoveLab().setText("");
 								}
 							}
 						break;
@@ -244,25 +249,26 @@ public class Client implements Runnable{
 								}else if(this.InPack.getCheck() == Pack.MATE){ // jeżeli wygrana
 									this.PlayerPanel.setMsg("Szach mat Wygrałeś",Color.GREEN);
 									this.PlayerPanel.getSidePanel().getMyBoard().lockAllPawns();
-									this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t,f);
+									this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t,f,t);
 									this.PlayerPanel.getOponentLab().setText("");
 									this.PlayerPanel.getColorLab().setText("");
+									this.PlayerPanel.getMoveLab().setText("");
 								}else if(this.InPack.getCheck()==Pack.DRAW_PROPOSE){
 									if(this.PlayerPanel!=null){
-										System.out.println("Propozycja remisu");
-										this.PlayerPanel.drawWindow(); // okno propozycji remisu
-										
+										this.PlayerPanel.drawWindow(); // okno propozycji remisu		
 									}
 								}else if(this.InPack.getCheck()==Pack.DRAW_NO){ // jeżeli przeciwnik odrzucił propozycję remisu
 									if(this.PlayerPanel!=null){
+											this.PlayerPanel.setBtnsAct(f,f,f,f,t,t,t,t,f);
 											this.PlayerPanel.setMsg("Przeciwnik odrzucił propozycję remisu",Color.RED);
 									}
 								}else if(this.InPack.getCheck()==Pack.DRAW_YES){
 									if(this.PlayerPanel!=null){
 										this.PlayerPanel.setMsg("Gra zakończona remisem",Color.GREEN);
-										this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t,f);
+										this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t,f,t);
 										this.PlayerPanel.getOponentLab().setText("");
 										this.PlayerPanel.getColorLab().setText("");
+										this.PlayerPanel.getMoveLab().setText("");
 										if(this.PlayerPanel.getSidePanel()!=null){
 											if(this.PlayerPanel.getSidePanel().getMyBoard()!=null){
 												this.PlayerPanel.getSidePanel().getMyBoard().lockAllPawns();
@@ -280,9 +286,10 @@ public class Client implements Runnable{
 													pck = new Pack("MAKE_MOVE");
 													pck.setCheck(Pack.MATE);
 													this.PlayerPanel.getSidePanel().getMyBoard().lockAllPawns();
-													this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t,f);
+													this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t,f,t);
 													this.PlayerPanel.getOponentLab().setText("");
 													this.PlayerPanel.getColorLab().setText("");
+													this.PlayerPanel.getMoveLab().setText("");
 												}else{
 													this.PlayerPanel.setMsg("Szach",Color.RED);
 													pck = new Pack("MAKE_MOVE");
@@ -315,6 +322,21 @@ public class Client implements Runnable{
 											//TODO decyzja co po zapisaniu gry okienko wychodzę lub gramy dalej
 									}
 								  }
+						break;
+						case "ASK_FOR_UPLOAD": // otrzymanie prośby o wczytanie gry
+							this.PlayerPanel.drawAskForUploadGame(this.InPack);
+						break;
+						case "NO_UPLOAD": // otrzymanie odmowy wczytania gry
+							  if(this.PlayerPanel!=null){
+									if(this.PlayerPanel.getSidePanel()!=null){
+										    this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t,f,t);
+											this.PlayerPanel.setMsg("Gracz "+this.InPack.getPlayer().getNick()+" odmówił wczytania gry",Color.RED);
+									}
+								  }
+						break;
+						case "UPLOAD_GAME": // otrzymanie zezwolenia na wczytanie gry
+							this.PlayerPanel.getSidePanel().uploadGame(this.InPack.getSaves()[0],this.InPack.getPlayers());
+							System.out.println("Wczytał "+this.MyPlayer.getNick());
 						break;
 					}
 				}

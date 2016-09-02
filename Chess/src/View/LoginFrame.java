@@ -120,8 +120,10 @@ public class LoginFrame extends JFrame implements ActionListener {
 	protected void exitProcedure() {
 		for(int i=0;i<10;i++){
 			if(this.MyClient[i]!=null){
-				this.MyClient[i].getPlayerPanel().exitProcedure2();
-				this.MyClient[i]=null;
+				if(this.MyClient[i].getPlayerPanel()!=null){
+					this.MyClient[i].getPlayerPanel().exitProcedure2();
+					this.MyClient[i]=null;
+				}
 			}
 		}
 		this.dispose();

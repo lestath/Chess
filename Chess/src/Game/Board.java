@@ -36,7 +36,7 @@ public class Board implements Serializable{
 		private boolean Lock; // zamek zapobiegający przejściu w rekurencję przy sprawdzaniu ruchów pionka
 		private boolean MyMove; // flaga oznaczona na true oznacza ruch gracza
 		
-		public Board(GraphPanel graph,int colorflag){
+		public Board(GraphPanel graph,int colorflag,boolean mymove){
 			this.MyColor=colorflag;
 			this.Graph=graph;
 			this.MyBoard = new Pawn[8][8];
@@ -49,7 +49,7 @@ public class Board implements Serializable{
 			this.AllowPawnMovesBoard = new int[8][8];
 			this.Context = Board.NO_MAT_CONTEXT;
 			this.Lock = true;
-			this.MyMove = false;
+			this.MyMove = mymove;
 			for(int i=0;i<8;i++){
 				for(int j=0;j<8;j++){
 					this.MyBoard[i][j]=null;
@@ -125,7 +125,6 @@ public class Board implements Serializable{
 			this.resetTab(this.LogicBoard);
 			int lx = this.getLogicCord(x);
 			int ly = this.getLogicCord(y);
-			System.out.println("X : "+lx+" Y: "+ly);
 			if(lx>=0 && lx<8 && ly>=0 && ly<8){
 				if(this.MyBoard[lx][ly]!=null && this.MyBoard[lx][ly].getColor()==this.MyColor){
 					this.checkMove(this.MyBoard[lx][ly],Board.MY_CONTEXT);
@@ -165,6 +164,8 @@ public class Board implements Serializable{
 					p.setY(ly);
 					p.setMoveCounter(p.getMoveCounter()+1);
 					this.resetTab(this.LogicBoard);
+					this.MyMove = false;
+					this.Graph.getFrame().getMoveLab().setText("<< Ruch przeciwnika >>");
 					return true;
 				}
 			}
@@ -197,6 +198,8 @@ public class Board implements Serializable{
 				enemy.setX(x);
 				enemy.setY(y);
 				this.MyBoard[enemy.getX()][enemy.getY()] = enemy;
+				this.MyMove = true;
+				this.Graph.getFrame().getMoveLab().setText("<< Twój ruch >>");
 				
 			}
 			this.Graph.repaint();
@@ -256,7 +259,6 @@ public class Board implements Serializable{
 									MyBoard[x][y].setY(y);
 									MyBoard[i][j]=null;
 									if(!this.checkCheck()){
-										System.out.println("nie ma mata");
 										this.NoMatBoard[x][y]=true;
 										counter = counter +1;
 									}else{
@@ -323,7 +325,6 @@ public class Board implements Serializable{
 						if(AllowPawnMovesBoard[x][y]==GraphPanel.RED_DOT)control = true;
 						if(this.checkCheck()){
 							AllowPawnMovesBoard[x][y]=0;
-							System.out.println("Sprawdziło === "+ pawn.getStatus());
 						}
 						MyBoard[prevx][prevy]=MyBoard[x][y];
 						MyBoard[prevx][prevy].setX(prevx);

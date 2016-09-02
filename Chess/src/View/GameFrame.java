@@ -49,6 +49,7 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 	private JLabel ColorLab;
 	private JLabel OponentLab;
 	private JLabel InfoLab; // etykieta powiadomień
+	private JLabel MoveLab; // etykieta powiadamiająca czyj jest ruch;
 	private GraphPanel SidePanel; // panel boczny (wyświetlacz)
 	public GameFrame(Client cli){
 		super("Chess Game");
@@ -112,6 +113,10 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 			 this.OponentLab =  new JLabel();
 			 this.OponentLab.setPreferredSize(btndim);
 			 this.OponentLab.setForeground(Color.WHITE);
+			 
+			 this.MoveLab =  new JLabel();
+			 this.MoveLab.setPreferredSize(btndim);
+			 this.MoveLab.setForeground(Color.WHITE);
 			 
 			 this.NewBoardBTn = new JButton("Utwórz stół");
 			 this.NewBoardBTn.setPreferredSize(btndim);
@@ -183,13 +188,14 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 			 this.StartGameBtn.setVisible(true);
 			 
 			 JLabel separatelabel = new JLabel();
-			 separatelabel.setPreferredSize(new Dimension(btndim.width,30));
+			 separatelabel.setPreferredSize(new Dimension(btndim.width,10));
 			 JLabel separatelabel2 = new JLabel();
 			 separatelabel2.setPreferredSize(new Dimension(btndim.width,200));
 			 
 			 btnpanel.add(this.PlayerLab);
 			 btnpanel.add(this.ColorLab);
 			 btnpanel.add(this.OponentLab);
+			 btnpanel.add(this.MoveLab);
 			 btnpanel.add(separatelabel);
 			 btnpanel.add(this.NewBoardBTn);
 			 btnpanel.add(this.JoinGameBtn);
@@ -212,6 +218,14 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 		
 	}
 	
+	public JLabel getMoveLab() {
+		return MoveLab;
+	}
+
+	public void setMoveLab(JLabel moveLab) {
+		MoveLab = moveLab;
+	}
+
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
 		boolean t= true;
@@ -219,22 +233,22 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 		Object obj = arg0.getSource();
 		Pack pck; // pakiet do wysyłania
 		if(obj == this.RankBtn){
-			this.setBtnsAct(t,t,t,f,f,f,t,f);
+			this.setBtnsAct(t,t,t,f,f,f,t,f,t);
 			pck = new Pack("GIVE_RANK");
 			this.myClient.sendPack(pck);
 			System.out.println("Wsyłam");
 		}else if(obj == this.NewBoardBTn){
 			pck = new Pack("NEW_TABLE");
-			this.setBtnsAct(f,f,f,f,f,t,t,f);
+			this.setBtnsAct(f,f,f,f,f,t,t,f,f);
 			this.myClient.sendPack(pck);
 		}else if(obj == this.JoinGameBtn){
 			pck = new Pack("GIVE_TAB_LIST");
 			this.myClient.sendPack(pck);
-			this.setBtnsAct(t,t,t,t,f,f,t,f);
+			this.setBtnsAct(t,t,t,t,f,f,t,f,t);
 		}else if(obj == this.StartGameBtn){
 			if(this.SidePanel!=null){
 				if(this.SidePanel.getGameState()==3){
-					this.setBtnsAct(f,f,f,f,t,t,t,t);
+					this.setBtnsAct(f,f,f,f,t,t,t,t,f);
 					int row = this.SidePanel.getTablesTab().getSelectedRow();
 					if(row == -1){row = 0;}
 					Player p = new Player(this.SidePanel.getTablesTab().getModel().getValueAt(row,1).toString(),"");
@@ -242,23 +256,38 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 					pck.setPlayer(p);
 					this.myClient.sendPack(pck);
 				}else if(this.SidePanel.getGameState()==4){
+					this.SidePanel.setWantedUpload(true);
 					//TODO oprogramowanie prośby o wczytanie gry
+					this.setBtnsAct(t,t,t,f,f,f,t,f,t);// TODO odpowiednie ustawienie przycisków
+					int row = this.SidePanel.getSavesTab().getSelectedRow();
+					if(row == -1){row = 0;}
+					Player p = new Player(this.SidePanel.getSavesTab().getModel().getValueAt(row,2).toString(),"");
+					pck = new Pack("ASK_FOR_UPLOAD"); // pakiet prośby o wczytanie gry
+					pck.setCheck(Integer.parseInt(this.SidePanel.getSavesTab().getModel().getValueAt(row,0).toString())); // tu zapisujemy identyfikator gry do wczytania
+					pck.setPlayer(p);
+					if(this.SidePanel.getSavesTab().getModel().getValueAt(row,1).toString().equals("dostępny")){
+						this.myClient.sendPack(pck);
+						this.setMsg("Wysłano prośbę o wczytanie gry do gracza : "+pck.getPlayer().getNick(),Color.WHITE);
+					}else{
+						this.setBtnsAct(t,t,t,t,f,f,t,f,t);
+						this.setMsg("Gracz : "+pck.getPlayer().getNick()+" jest teraz niedostępny",Color.WHITE);
+					}
 				}
 			}
 		}else if(obj == this.ExitBtn){
 			this.exitProcedure();
 		}else if(obj == this.ExitTableBtn){
 			pck = new Pack("CLOSE_TABLE");
-			this.setBtnsAct(t,t,t,f,f,f,t,f);
+			this.setBtnsAct(t,t,t,f,f,f,t,f,t);
 			this.myClient.sendPack(pck);
 		}else if(obj==this.DrawProposeBtn){
-			this.setBtnsAct(f,f,f,f,f,t,t,f);
+			this.setBtnsAct(f,f,f,f,f,t,t,f,f);
 			setMsg("Zaproponowałeś remis",Color.WHITE);
 			pck = new Pack("MAKE_MOVE");
 			pck.setCheck(Pack.DRAW_PROPOSE);
 			this.myClient.sendPack(pck);
 		}else if(obj == this.SavedGamesBtn){
-			this.setBtnsAct(t,t,t,t,f,f,t,f);
+			this.setBtnsAct(t,t,t,t,f,f,t,f,t);
 			pck = new Pack("GIVE_SAVED_GAMES");
 			this.myClient.sendPack(pck);
 		}else if(obj == this.SaveGameBtn){
@@ -287,7 +316,7 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 	 * @param b7
 	 * 			Flaga przycisku "Wyjdź"
 	 */
-	public void setBtnsAct(boolean b1, boolean b2 , boolean b3, boolean b4, boolean b5, boolean b6, boolean b7,boolean b8){ // b8 zapisz grę
+	public void setBtnsAct(boolean b1, boolean b2 , boolean b3, boolean b4, boolean b5, boolean b6, boolean b7,boolean b8,boolean b9){ // b8 zapisz grę
 		this.NewBoardBTn.setEnabled(b1);
 		this.JoinGameBtn.setEnabled(b2);
 		this.RankBtn.setEnabled(b3);
@@ -296,6 +325,7 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 		this.ExitTableBtn.setEnabled(b6);
 		this.ExitBtn.setEnabled(b7);
 		this.SaveGameBtn.setEnabled(b8);
+		this.SavedGamesBtn.setEnabled(b9);
 		
 	}
 	
@@ -306,17 +336,23 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 		boolean t = true;
 		boolean f = false;
 		Pack p;
-		this.setBtnsAct(f,f,f,f,f,t,t,f);
+		this.setBtnsAct(f,f,f,f,t,t,t,t,f);
 		int selectedOption = JOptionPane.showConfirmDialog(null, 
                 "Przeciwnik zaproponował remis. Zgadzasz się?", 
                 "Choose", 
                 JOptionPane.YES_NO_OPTION); 
 			if (selectedOption == JOptionPane.YES_OPTION) {
 				setMsg("zaakceptowałeś remis koniec gry",Color.WHITE);
+				this.getOponentLab().setText("");
+				this.getColorLab().setText("");
+				this.getMoveLab().setText("");
 				p = new Pack("MAKE_MOVE");
 				p.setCheck(Pack.DRAW_YES);
 				this.myClient.sendPack(p);
-				this.setBtnsAct(t,t,t,f,f,f,t,f);
+				this.setBtnsAct(t,t,t,f,f,f,t,f,t);
+				this.getOponentLab().setText("");
+				this.getColorLab().setText("");
+				this.getMoveLab().setText("");
 				if(this.SidePanel!=null){
 					if(SidePanel.getMyBoard()!=null){
 						this.SidePanel.getMyBoard().lockAllPawns();
@@ -330,6 +366,33 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 			}
 	}
 	
+	/**
+	 * Metoda wyświetlająca okno propozycji wczytania gry
+	 */
+	public void drawAskForUploadGame(Pack p){
+		this.SidePanel.setWantedUpload(false);
+		//TODO przyciki odpowiednio ustawić
+		boolean t = true;
+		boolean f = false;
+		this.setBtnsAct(t,t,t,f,f,f,t,f,t);
+		Pack pack = new Pack("");
+		pack.setPlayer(p.getPlayer());
+		pack.setCheck(p.getCheck());
+		int selectedOption = JOptionPane.showConfirmDialog(null, 
+                "Przeciwnik "+p.getPlayer().getNick()+" zaproponował kontynuowanie zapisanej gry. Zgadzasz się?", 
+                "Choose", 
+                JOptionPane.YES_NO_OPTION); 
+			if (selectedOption == JOptionPane.YES_OPTION) {
+				this.setBtnsAct(f,f,f,t,t,t,t,t,f);
+				setMsg("zaakceptowałeś wczytanie gry",Color.WHITE);
+				pack.setMessage("UPLOAD_GAME");
+				this.myClient.sendPack(pack);
+			}else if(selectedOption == JOptionPane.NO_OPTION){
+				setMsg("Odrzuciłeś propozycję kontynuowania gry",Color.WHITE);
+				pack.setMessage("NO_UPLOAD");
+				this.myClient.sendPack(pack);
+			}
+	}
 	
 	public JButton getDrawProposeBtn() {
 		return DrawProposeBtn;

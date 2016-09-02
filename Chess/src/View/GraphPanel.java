@@ -54,6 +54,7 @@ public class GraphPanel extends JPanel implements MouseListener {
 	private Board MyBoard; // obiekt szachownicy
 	private boolean InvertedFlag; // flaga okeslająca czy tło szachownicy było odwrócone
 	private Pawn SelectedPawn; //obiekt zaznaczonego pionka
+	private boolean WantedUpload; // flaga wskazuje, czy ten gracz chicał wczytać grę
 
 	
 	public GraphPanel(int w, int h, GameFrame frm){
@@ -62,7 +63,7 @@ public class GraphPanel extends JPanel implements MouseListener {
 		this.setLayout(new FlowLayout());
 		this.setOpaque(false);
 		this.InvertedFlag = false;
-
+		this.WantedUpload = false;
 		
 		try {
 		    this.Background = ImageIO.read(getClass().getResource("/img/background2.png"));
@@ -273,6 +274,14 @@ public class GraphPanel extends JPanel implements MouseListener {
 		this.repaint();	
 	}
 	
+	public JTable getSavesTab() {
+		return SavesTab;
+	}
+
+	public void setSavesTab(JTable savesTab) {
+		SavesTab = savesTab;
+	}
+
 	/**
 	 * Metoda przugotowująca panel graficzny do gry
 	 */
@@ -361,7 +370,14 @@ public class GraphPanel extends JPanel implements MouseListener {
 	 * 			Flaga określająca który set ma się znaleźć na dole szachownicy
 	 */
 	public void startGame(int bottom){
-		this.MyBoard = new Board(this,bottom);
+		boolean mymove = false;
+		if(bottom == Board.WHITE_ON_BOTTOM){
+			this.Frame.getMoveLab().setText("<< Twój ruch >>");
+			mymove = true;
+		}else{
+			this.Frame.getMoveLab().setText("<< Ruch przeciwnika >>");
+		}
+		this.MyBoard = new Board(this,bottom,mymove);
 		this.prepareTableToGame();
 		this.GameStarted = true;
 		this.repaint();
@@ -437,27 +453,29 @@ public class GraphPanel extends JPanel implements MouseListener {
 	
 	@Override
 	public void mouseClicked(MouseEvent arg0) {
-		Pack pck = null;
-		int x = arg0.getX();
-		int y = arg0.getY();
-		if(SelectedPawn==null){
-			if(this.MyBoard!=null){
-				this.SelectedPawn = this.MyBoard.checkClicked(x,y);
-			}
-		}else{
-			if(this.MyBoard.makeMove(this.SelectedPawn,x,y)){
-				pck = new Pack("MAKE_MOVE");
-				pck.setPawnId(this.SelectedPawn.getId());
-				pck.setX(this.SelectedPawn.getX());
-				pck.setY(this.SelectedPawn.getY());
-				this.Frame.getMyClient().sendPack(pck);
-				if(this.SelectedPawn.getStatus()==Pawn.PAWN && this.SelectedPawn.getY()==0){
-					this.swapPawn(this.SelectedPawn);
+		if(this.MyBoard!=null && this.MyBoard.isMyMove()){
+			Pack pck = null;
+			int x = arg0.getX();
+			int y = arg0.getY();
+			if(SelectedPawn==null){
+				if(this.MyBoard!=null){
+					this.SelectedPawn = this.MyBoard.checkClicked(x,y);
 				}
+			}else{
+				if(this.MyBoard.makeMove(this.SelectedPawn,x,y)){
+					pck = new Pack("MAKE_MOVE");
+					pck.setPawnId(this.SelectedPawn.getId());
+					pck.setX(this.SelectedPawn.getX());
+					pck.setY(this.SelectedPawn.getY());
+					this.Frame.getMyClient().sendPack(pck);
+					if(this.SelectedPawn.getStatus()==Pawn.PAWN && this.SelectedPawn.getY()==0){
+						this.swapPawn(this.SelectedPawn);
+					}
+				}
+				this.SelectedPawn = null;
 			}
-			this.SelectedPawn = null;
+			this.repaint();	
 		}
-		this.repaint();	
 	}
 	
 	/**
@@ -475,7 +493,6 @@ public class GraphPanel extends JPanel implements MouseListener {
 					switch(response){
 						case 0:
 							p.setStatus(Pawn.QUEEN);
-							System.out.println("Wymiana udała się "+p.getStatus());
 						break;
 						case 1:
 							p.setStatus(Pawn.ROCK);
@@ -543,6 +560,98 @@ public class GraphPanel extends JPanel implements MouseListener {
 
 	public void setGameState(byte gameState) {
 		GameState = gameState;
+	}
+
+	/**
+	 * Metoda wczytuje zapisaną grę na podstawie otrzymanej planszy z pakietu
+	 * @param gameSaved
+	 * 				Zapisana plansza
+	 */
+	public void uploadGame(GameSaved gameSaved,Player[] play) {
+		//TODO męczarnia z wczytankiem :(
+		boolean t = true;
+		boolean f= false;
+		this.Frame.setBtnsAct(f,f,f,f,t,t,t,t,f);
+		this.GameState=2;
+
+		String opnick = play[0].getNick();// nick przeciwnika
+		if(this.Frame.getMyClient().getMyPlayer().getNick().equals(play[0].getNick())){
+			opnick = play[1].getNick();
+		}
+        String mynick =this.Frame.getPlayerLab().getText(); //this.Frame.getMyClient().getMyPlayer().getNick(); // nick własny gracza
+        int color = gameSaved.getColor();
+        boolean move = gameSaved.isMove();
+	    if(gameSaved.getNick1().equals(mynick)){
+	        	this.MyBoard = new Board(this, color, move);
+	        	if(color==Board.BLACK_ON_BOTTOM){
+	        		this.invertBoard();
+	        	}
+	        	this.MyBoard.setMyBoard(gameSaved.getBoard());
+        }else{
+        	if(move == true){
+        		move = false;
+        	}else{
+        		move = true;
+        	}
+
+        	if(color==Board.WHITE_ON_BOTTOM){
+        		color = Board.BLACK_ON_BOTTOM;
+        		this.invertBoard();
+        	}else{
+        		color = Board.WHITE_ON_BOTTOM;
+        	}
+        	this.MyBoard = new Board(this, color,move);
+        	for(int i=0;i<8;i++){
+        		for(int j=0;j<8;j++){
+        			if(this.MyBoard.getMyBoard()[i][j]!=null){
+        				this.MyBoard.getMyBoard()[i][j].setActive(false);
+        				this.MyBoard.getMyBoard()[i][j].setAllowMove(false);
+        				this.MyBoard.getMyBoard()[i][j]=null;
+        			}
+        		}
+        	}
+        	for(int i=0;i<8;i++){
+        		for(int j=0;j<8;j++){
+        			if(gameSaved.getBoard()[i][j]!=null){
+        				gameSaved.getBoard()[i][j].setY(this.MyBoard.calculateOponentCord(gameSaved.getBoard()[i][j].getY(),true));
+        				gameSaved.getBoard()[i][j].calcCordstoGraph();
+        			}
+        		}
+        	}
+        	for(int i=0;i<8;i++){
+        		for(int j=0;j<8;j++){
+        			if(gameSaved.getBoard()[i][j]!=null){
+        				this.MyBoard.getMyBoard()[i][this.MyBoard.calculateOponentCord(j,true)]=gameSaved.getBoard()[i][j];
+        			}
+        		}
+        	}
+        }
+			this.Frame.getOponentLab().setText("Przeciwnik : "+opnick);
+			if(color==Pawn.WHITE){
+				this.Frame.getColorLab().setText("Biały");
+			}else{
+				this.Frame.getColorLab().setText("Czarny");
+			}
+			if(move){
+				this.Frame.getMoveLab().setText("<< Twój ruch >>");
+			}else{
+				this.Frame.getMoveLab().setText("<< Ruch przeciwnika >>");
+			}
+			
+		this.prepareTableToGame();
+		this.GameStarted = true;
+		this.repaint();
+		gameSaved = null;
+		
+		
+	}
+
+	public boolean isWantedUpload() {
+		return WantedUpload;
+	}
+
+	public void setWantedUpload(boolean wantedUpload) {
+		WantedUpload = wantedUpload;
 	}
 
 

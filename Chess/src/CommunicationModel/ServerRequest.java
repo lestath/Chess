@@ -164,11 +164,51 @@ public class ServerRequest extends Thread {
 										this.Serv.getClientsActivity()[this.OponentID][1]=false;	
 									}
 								}
-								System.out.println("Wejście w zapis do rankingu");
 							}
 							this.Serv.getClientsThr()[this.OponentID].sentPack(pck);
 							if(pck.getCheck()==Pack.MATE || pck.getCheck()==Pack.DRAW_YES)this.OponentID = -1;
 						}
+					break;
+					case "ASK_FOR_UPLOAD": // prośba o wczytanie gry
+						ServerRequest s = this.findClientByNick(pck.getPlayer().getNick());
+						Pack afup = new Pack("ASK_FOR_UPLOAD");
+						if(s!=null){
+							if(this.Serv.getClientsActivity()[(int) s.getClientID()][0] && this.Serv.getClientsActivity()[(int) s.getClientID()][1]==false){
+								if(s.getOponentID()==-1){
+									afup.setPlayer(getClient());
+									afup.setCheck(pck.getCheck());
+									s.sentPack(afup);
+								}
+							}
+						}
+					break;
+					case "NO_UPLOAD": // odrzucenie prośby o wczytanie gry
+						ServerRequest s2 = this.findClientByNick(pck.getPlayer().getNick());
+						Pack afup2 = new Pack("NO_UPLOAD");
+						if(s2!=null){
+							if(this.Serv.getClientsActivity()[(int) s2.getClientID()][0] && this.Serv.getClientsActivity()[(int) s2.getClientID()][1]==false){
+								if(s2.getOponentID()==-1){
+									afup2.setPlayer(getClient());
+									s2.sentPack(afup2);
+								}
+							}
+						}
+					break;
+					case "UPLOAD_GAME": // zaakceptowanie wczytania gry
+					 Pack game = new Pack("UPLOAD_GAME"); // pakiet wysyłający zapisaną grę
+					 game.getSaves()[0] = this.Serv.getSavedGames()[pck.getCheck()];
+					 game.setPlayers(new Player[2]);
+					 game.getPlayers()[0]=this.Client;
+					 ServerRequest req = this.findClientByNick(pck.getPlayer().getNick());
+					 
+					 if(req!=null){
+						 game.getPlayers()[1]=req.getClient();
+						 req.setOponentID(this.ClientID);
+						 this.OponentID = req.getClientID();
+						 game.setCheck(100);
+						 req.sentPack(game);
+						 this.sentPack(game);
+					 }
 					break;
 					default: 
 						if(this.OponentID!=-1){
@@ -342,7 +382,9 @@ public class ServerRequest extends Thread {
 		for(int i=0;i<this.Serv.getMaxSavedGames();i++){
 			s= this.Serv.getSavedGames()[i];
 			if(s!=null){
+				System.out.println("Sprawdza w zapisie");
 				if(s.getNick1()== save.getNick1() || s.getNick1()== save.getNick2()){
+					System.out.println("Weszło w pierwszy if");
 					if(s.getNick2() == save.getNick1() || s.getNick2()==save.getNick2()){
 						this.Serv.getSavedGames()[i]=save;
 						this.Serv.saveSavedGames();
@@ -518,6 +560,27 @@ public class ServerRequest extends Thread {
 			e.printStackTrace();
 		}
 		this.Serv.uploadRegisteredPlayers();
+	}
+	
+	/**
+	 * Metoda wyszukuje Wątek aktywnego klienta według nicku
+	 * @param nick
+	 * 			Nick klienta do wyszukania
+	 * @return
+	 * 			Zwraca wątek klienta
+	 */
+	private  ServerRequest findClientByNick(String nick){
+		for(int i=0;i<this.Serv.getMaxActiveClients();i++){
+			if(this.Serv.getClientsThr()[i]!=null){
+				if(this.Serv.getClientsThr()[i].getClient()!=null){
+					if(this.Serv.getClientsThr()[i].getClient().getNick().equals(nick)){
+						return this.Serv.getClientsThr()[i];
+					}
+				}
+			}
+		}
+		return null;
+		
 	}
 	
 	

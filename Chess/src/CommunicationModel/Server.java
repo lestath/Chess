@@ -124,11 +124,9 @@ public class Server implements Runnable{
 			try {
 				this.Indata = new ObjectInputStream(new FileInputStream(this.Filepath));
 				int i = 0;
-				System.out.println("Zarejestrowani :");
 				Player p;
 				while((p = (Player)this.Indata.readObject())!=null && i<this.MaxPlayers){
 					this.RegisteredPlayers[i] = p;
-					System.out.println(this.RegisteredPlayers[i].getNick());
 					i = i+1;
 				}
 				this.Indata.close();
@@ -147,7 +145,6 @@ public class Server implements Runnable{
 			GameSaved p;
 			while((p = (GameSaved)this.SavedDataIn.readObject())!=null && i<this.MaxSavedGames){
 				this.SavedGames[i] = new GameSaved(i,p.getNick1(),p.getNick2(),p.getColor(),p.isMove(),p.getBoard(),p.isAllowPlay());
-				System.out.println("zapisana gra : "+this.SavedGames[i].getNick1());
 				i = i+1;
 			}
 			this.SavedDataIn.close();
@@ -194,7 +191,6 @@ public class Server implements Runnable{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	   System.out.println("Zapis tablicy gier do pliku");
    }
    
 	
