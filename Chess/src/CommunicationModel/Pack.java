@@ -45,6 +45,7 @@ public class Pack implements Serializable{
 		this.Status = -1;
 		this.Check = -1;
 		this.saves = new GameSaved[100];
+		this.players = new Player[50];
 	}
 	
 	
@@ -91,7 +92,7 @@ public class Pack implements Serializable{
 			this.players=null;
 			return;
 		}
-		this.players = new Player[players.length];
+		this.players = new Player[50];
 		for(int i=0;i<players.length;i++){
 			this.players[i]=players[i];
 		}

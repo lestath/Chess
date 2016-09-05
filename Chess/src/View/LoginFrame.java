@@ -161,7 +161,7 @@ public class LoginFrame extends JFrame implements ActionListener {
 		}else{
 				int port = 4448;
 				String pass = String.valueOf(this.Password.getPassword());
-				System.out.println("To hasło :"+pass);
+				System.out.println("Hasło :"+pass);
 				Player play = new Player(this.Login.getText(),pass);
 			try{
 				 port = Integer.parseInt(this.Port.getText());
@@ -197,13 +197,11 @@ public class LoginFrame extends JFrame implements ActionListener {
 			}
 			Pack p = new Pack("HELLO");
 			p.setPlayer(play);
-			System.out.println("Iterator Gracza: "+this.ClientIterator);
 			if(obj == this.LoginBtn){
 					p.setMessage("LOG_ME");
 					this.MyClient[this.ClientIterator].sendPack(p);
 			}else if(obj == this.RegisterBtn){
 					p.setMessage("REG_ME"); //polecenie zarejestrowania 
-					System.out.println("Jestem tu");
 					this.MyClient[this.ClientIterator].sendPack(p);
 			}
 			

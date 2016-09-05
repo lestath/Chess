@@ -55,6 +55,9 @@ public class GraphPanel extends JPanel implements MouseListener {
 	private boolean InvertedFlag; // flaga okeslająca czy tło szachownicy było odwrócone
 	private Pawn SelectedPawn; //obiekt zaznaczonego pionka
 	private boolean WantedUpload; // flaga wskazuje, czy ten gracz chicał wczytać grę
+	private int Kolor;//kolor po wczytaniu zapisanej gry
+	private boolean Move;// ruch po wczytaniu
+
 
 	
 	public GraphPanel(int w, int h, GameFrame frm){
@@ -64,6 +67,7 @@ public class GraphPanel extends JPanel implements MouseListener {
 		this.setOpaque(false);
 		this.InvertedFlag = false;
 		this.WantedUpload = false;
+
 		
 		try {
 		    this.Background = ImageIO.read(getClass().getResource("/img/background2.png"));
@@ -302,10 +306,10 @@ public class GraphPanel extends JPanel implements MouseListener {
 			}
 		}else if(GameState == 1 || GameState==3 || GameState==4){
 			g2d.clearRect(0,0,this.getWidth(),this.getHeight());
-			this.updateUI();
 		}else{
 			g2d.drawImage(this.Background,null,0,0);
 		}
+		this.updateUI();
 	}
 
 	
@@ -573,77 +577,73 @@ public class GraphPanel extends JPanel implements MouseListener {
 		boolean f= false;
 		this.Frame.setBtnsAct(f,f,f,f,t,t,t,t,f);
 		this.GameState=2;
-
 		String opnick = play[0].getNick();// nick przeciwnika
+		String mynick =play[1].getNick();
 		if(this.Frame.getMyClient().getMyPlayer().getNick().equals(play[0].getNick())){
 			opnick = play[1].getNick();
+			mynick = play[0].getNick();
 		}
-        String mynick =this.Frame.getPlayerLab().getText(); //this.Frame.getMyClient().getMyPlayer().getNick(); // nick własny gracza
-        int color = gameSaved.getColor();
-        boolean move = gameSaved.isMove();
-	    if(gameSaved.getNick1().equals(mynick)){
-	        	this.MyBoard = new Board(this, color, move);
-	        	if(color==Board.BLACK_ON_BOTTOM){
-	        		this.invertBoard();
-	        	}
-	        	this.MyBoard.setMyBoard(gameSaved.getBoard());
-        }else{
-        	if(move == true){
-        		move = false;
-        	}else{
-        		move = true;
-        	}
-
-        	if(color==Board.WHITE_ON_BOTTOM){
-        		color = Board.BLACK_ON_BOTTOM;
-        		this.invertBoard();
-        	}else{
-        		color = Board.WHITE_ON_BOTTOM;
-        	}
-        	this.MyBoard = new Board(this, color,move);
-        	for(int i=0;i<8;i++){
-        		for(int j=0;j<8;j++){
-        			if(this.MyBoard.getMyBoard()[i][j]!=null){
-        				this.MyBoard.getMyBoard()[i][j].setActive(false);
-        				this.MyBoard.getMyBoard()[i][j].setAllowMove(false);
-        				this.MyBoard.getMyBoard()[i][j]=null;
-        			}
-        		}
-        	}
-        	for(int i=0;i<8;i++){
-        		for(int j=0;j<8;j++){
-        			if(gameSaved.getBoard()[i][j]!=null){
-        				gameSaved.getBoard()[i][j].setY(this.MyBoard.calculateOponentCord(gameSaved.getBoard()[i][j].getY(),true));
-        				gameSaved.getBoard()[i][j].calcCordstoGraph();
-        			}
-        		}
-        	}
-        	for(int i=0;i<8;i++){
-        		for(int j=0;j<8;j++){
-        			if(gameSaved.getBoard()[i][j]!=null){
-        				this.MyBoard.getMyBoard()[i][this.MyBoard.calculateOponentCord(j,true)]=gameSaved.getBoard()[i][j];
-        			}
-        		}
-        	}
-        }
+        this.Kolor = gameSaved.getColor();
+        this.Move= gameSaved.isMove();
+        Pawn[][] b = gameSaved.getBoard();
+        Pawn[][] b2 = new Pawn[8][8];
+	    if(!gameSaved.getNick1().equals(mynick)){ // jeżeli gracz zapisał jako czarny
+	    	if(this.Kolor==Board.WHITE_ON_BOTTOM){
+	    		this.Kolor = Board.BLACK_ON_BOTTOM;
+	    	}else{
+	    		this.Kolor = Board.WHITE_ON_BOTTOM;
+	    	}
+	    	if(this.Move){
+	    		this.Move = false;
+	    	}else{
+	    		this.Move = true;
+	    	}
+	    		
+		    	for(int i =0;i<8;i++){
+		    		for(int j=0;j<8;j++){
+		    			b2[i][j]=null;
+		    			if(b[i][j]!=null && b[i][j].isActive()){
+		    				b[i][j].setX(Board.calculateOponentCord(b[i][j].getX(),false));
+		    				b[i][j].setY(Board.calculateOponentCord(b[i][j].getY(),true));
+		    			}
+		    		}
+		    	}
+		    	for(int i =0;i<8;i++){
+		    		for(int j=0;j<8;j++){
+		    			if(b[i][j]!=null && b[i][j].isActive()){
+		    				b2[b[i][j].getX()][b[i][j].getY()]=b[i][j];
+		    			}
+		    		}
+		    	}
+		    	
+	    }else{
+		    	for(int i =0;i<8;i++){
+		    		for(int j=0;j<8;j++){
+		    				b2[i][j]=b[i][j];
+		    		}
+		    	}
+	    }
+	    	
+	    	this.MyBoard = new Board(this,this.Kolor,this.Move);
+	        this.MyBoard.setMyBoard(b2);
+	    	if(this.Kolor == Board.BLACK_ON_BOTTOM && !this.InvertedFlag){
+	    		this.invertBoard();
+	    	}	    
+	    	
 			this.Frame.getOponentLab().setText("Przeciwnik : "+opnick);
-			if(color==Pawn.WHITE){
+			if(this.Kolor==Pawn.WHITE){
 				this.Frame.getColorLab().setText("Biały");
 			}else{
 				this.Frame.getColorLab().setText("Czarny");
 			}
-			if(move){
+			if(this.Move){
 				this.Frame.getMoveLab().setText("<< Twój ruch >>");
 			}else{
 				this.Frame.getMoveLab().setText("<< Ruch przeciwnika >>");
 			}
-			
 		this.prepareTableToGame();
 		this.GameStarted = true;
-		this.repaint();
-		gameSaved = null;
-		
-		
+		this.repaint();	
 	}
 
 	public boolean isWantedUpload() {
@@ -652,6 +652,22 @@ public class GraphPanel extends JPanel implements MouseListener {
 
 	public void setWantedUpload(boolean wantedUpload) {
 		WantedUpload = wantedUpload;
+	}
+
+	public boolean getMove() {
+		return Move;
+	}
+
+	public void setMove(boolean move) {
+		Move = move;
+	}
+
+	public int getKolor() {
+		return Kolor;
+	}
+
+	public void setKolor(int kolor) {
+		Kolor = kolor;
 	}
 
 

@@ -29,6 +29,7 @@ public class GameSaved implements Serializable{
 		this.Color = color;
 		this.Board = new Pawn[8][8];
 		this.Move = move;
+		this.Board = new Pawn[8][8];
 		for(int i=0; i<8; i++){
 			for(int j=0;j<8;j++){
 				this.Board[i][j]=board[i][j];
@@ -60,7 +61,12 @@ public class GameSaved implements Serializable{
 		return Board;
 	}
 	public void setBoard(Pawn[][] board) {
-		Board = board;
+		this.Board = new Pawn[8][8];
+		for(int i=0;i<8;i++){
+			for(int j=0;j<8;j++){
+				Board[i][j] = board[i][j];
+			}
+		}
 	}
 	public int isAllowPlay() {
 		return AllowPlay;

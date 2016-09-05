@@ -8,7 +8,6 @@ import java.net.Socket;
 
 import View.GameFrame;
 import View.LoginFrame;
-import Game.Board;
 import Game.Pawn;
 import Game.Player;
 
@@ -125,8 +124,6 @@ public class Client implements Runnable{
 						case "LOG_SUCCESS": // poprawne zalogowanie
 							this.MyPlayer = this.InPack.getPlayer();
 							this.Frame.setMsg("Poprawinie zalogowano",Color.GREEN);
-							System.out.println("Pomyślnie zalogowano");
-							System.out.println(this.MyPlayer.getId());
 							this.Frame.setOperarionSucess(true);
 							this.Frame.setConnectSucess(true);
 							this.PlayerPanel = new GameFrame(this);
@@ -336,7 +333,6 @@ public class Client implements Runnable{
 						break;
 						case "UPLOAD_GAME": // otrzymanie zezwolenia na wczytanie gry
 							this.PlayerPanel.getSidePanel().uploadGame(this.InPack.getSaves()[0],this.InPack.getPlayers());
-							System.out.println("Wczytał "+this.MyPlayer.getNick());
 						break;
 					}
 				}

@@ -236,7 +236,6 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 			this.setBtnsAct(t,t,t,f,f,f,t,f,t);
 			pck = new Pack("GIVE_RANK");
 			this.myClient.sendPack(pck);
-			System.out.println("Wsyłam");
 		}else if(obj == this.NewBoardBTn){
 			pck = new Pack("NEW_TABLE");
 			this.setBtnsAct(f,f,f,f,f,t,t,f,f);
@@ -260,7 +259,11 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 					//TODO oprogramowanie prośby o wczytanie gry
 					this.setBtnsAct(t,t,t,f,f,f,t,f,t);// TODO odpowiednie ustawienie przycisków
 					int row = this.SidePanel.getSavesTab().getSelectedRow();
-					if(row == -1){row = 0;}
+					if(this.SidePanel.getSavesTab().getModel().getValueAt(row,2).toString().equals("")){
+						this.setMsg("Nie wybrano gry",Color.RED);
+						this.setBtnsAct(t,t,t,t,f,f,t,f,t);
+						return;
+					}
 					Player p = new Player(this.SidePanel.getSavesTab().getModel().getValueAt(row,2).toString(),"");
 					pck = new Pack("ASK_FOR_UPLOAD"); // pakiet prośby o wczytanie gry
 					pck.setCheck(Integer.parseInt(this.SidePanel.getSavesTab().getModel().getValueAt(row,0).toString())); // tu zapisujemy identyfikator gry do wczytania
@@ -272,6 +275,8 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 						this.setBtnsAct(t,t,t,t,f,f,t,f,t);
 						this.setMsg("Gracz : "+pck.getPlayer().getNick()+" jest teraz niedostępny",Color.WHITE);
 					}
+					p = null;
+					pck = null;
 				}
 			}
 		}else if(obj == this.ExitBtn){

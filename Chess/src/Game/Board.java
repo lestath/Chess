@@ -30,7 +30,7 @@ public class Board implements Serializable{
 		private int[][] MySimulationBoard; // tablica symulacji wykorzystywana przy sprawdzaniu ruchów własnego pionka
 		private int[][] SaveBoard;// tablica trzymająca dane z tablicy logicznej korzystamy z niej do zapisu/odczytu
 		private boolean[][] NoMatBoard; //tablica przetrzymująca pozycje, po których nie ma mata 
-		private int[][] AllowPawnMovesBoard; //tablica przetrzymująca pozycje pionka nie odsłaniające króla na mat
+		private int[][] AllowPawnMovesBoard; //tablica przetrzymująca pozycje pionka nieodsłaniające króla na mat
 		private boolean[][] KingDanger;// tablica przetrzymuje pozycje zagrożenia króla szachem po przesunięciu na dane pole 
 		private int Context; // pole kontekstu sprawdzania ruchu pionka 0 zwykły 1 w kontekście mata
 		private boolean Lock; // zamek zapobiegający przejściu w rekurencję przy sprawdzaniu ruchów pionka
@@ -60,7 +60,7 @@ public class Board implements Serializable{
 					this.AllowPawnMovesBoard[i][j]=0;
 					this.NoMatBoard[i][j]=false;
 					this.KingDanger[i][j]=false;
-					}
+				}
 			}
 			int id = 0;
 			if(this.MyColor==Board.WHITE_ON_BOTTOM){
@@ -185,8 +185,8 @@ public class Board implements Serializable{
 			Pawn enemy = null;
 			Pawn p = this.getPawnById(id);
 			if(p!=null){
-				int x =this.calculateOponentCord(px,false);
-				int y =this.calculateOponentCord(py,true);
+				int x =Board.calculateOponentCord(px,false);
+				int y =Board.calculateOponentCord(py,true);
 				enemy = this.getPawnById(p.getId());
 				if(this.MyBoard[x][y]!=null){
 					this.MyBoard[x][y].setActive(false);
@@ -852,8 +852,8 @@ public class Board implements Serializable{
 		 * @return
 		 * 		Zwraca przeliczoną współrzędną
 		 */
-		public int calculateOponentCord(int cord,boolean yflag){
-			if(yflag)return ((-cord)+(this.LogicBoard.length-1));
+		public static int calculateOponentCord(int cord,boolean yflag){
+			if(yflag)return ((-cord)+7);
 			return cord;
 		}
 
@@ -883,7 +883,12 @@ public class Board implements Serializable{
 
 
 		public void setMyBoard(Pawn[][] myBoard) {
-			MyBoard = myBoard;
+			if(this.MyBoard==null){this.MyBoard=new Pawn[8][8];}
+			for(int i=0;i<8;i++){
+				for(int j=0;j<8;j++){
+					this.MyBoard[i][j]=myBoard[i][j];
+				}
+			}
 		}
 
 

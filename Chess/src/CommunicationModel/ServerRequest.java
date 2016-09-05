@@ -197,7 +197,7 @@ public class ServerRequest extends Thread {
 					case "UPLOAD_GAME": // zaakceptowanie wczytania gry
 					 Pack game = new Pack("UPLOAD_GAME"); // pakiet wysyłający zapisaną grę
 					 game.getSaves()[0] = this.Serv.getSavedGames()[pck.getCheck()];
-					 game.setPlayers(new Player[2]);
+					 game.setPlayers(new Player[50]);
 					 game.getPlayers()[0]=this.Client;
 					 ServerRequest req = this.findClientByNick(pck.getPlayer().getNick());
 					 
@@ -209,6 +209,9 @@ public class ServerRequest extends Thread {
 						 req.sentPack(game);
 						 this.sentPack(game);
 					 }
+					 this.Serv.saveSavedGames();
+					 this.Serv.uploadSavedGames();
+					 game = null;
 					break;
 					default: 
 						if(this.OponentID!=-1){
@@ -382,9 +385,7 @@ public class ServerRequest extends Thread {
 		for(int i=0;i<this.Serv.getMaxSavedGames();i++){
 			s= this.Serv.getSavedGames()[i];
 			if(s!=null){
-				System.out.println("Sprawdza w zapisie");
 				if(s.getNick1()== save.getNick1() || s.getNick1()== save.getNick2()){
-					System.out.println("Weszło w pierwszy if");
 					if(s.getNick2() == save.getNick1() || s.getNick2()==save.getNick2()){
 						this.Serv.getSavedGames()[i]=save;
 						this.Serv.saveSavedGames();
@@ -418,8 +419,6 @@ public class ServerRequest extends Thread {
 		for(int i=0;i<this.Serv.getMaxActiveClients();i++){
 			if(this.Serv.getClientsThr()[i]!=null){
 				req= this.Serv.getClientsThr()[i];
-				System.out.println(nick);
-				System.out.println(req.getClient().getNick());
 				if(req.getClient().getNick().equals(nick)){
 					if((this.Serv.getClientsActivity()[i][1]==false) && this.Serv.getClientsActivity()[i][0]){
 						if(req.getOponentID()==-1){
