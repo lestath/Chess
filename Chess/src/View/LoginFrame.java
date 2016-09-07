@@ -84,12 +84,12 @@ public class LoginFrame extends JFrame implements ActionListener {
 		
 		this.LoginLab = new JLabel("Login :");
 		this.LoginLab.setPreferredSize(dim2);
-		this.Login = new JTextField("Konrad2");
+		this.Login = new JTextField();
 		this.Login.setPreferredSize(dim);
 		
 		this.PasswordLab = new JLabel("Hasło :");
 		this.PasswordLab.setPreferredSize(dim2);
-		this.Password = new JPasswordField("kopacz22");
+		this.Password = new JPasswordField();
 		this.Password.setPreferredSize(dim);
 		
 		this.LoginBtn = new JButton("Zaloguj");
