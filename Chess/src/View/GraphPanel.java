@@ -506,7 +506,7 @@ public class GraphPanel extends JPanel implements MouseListener {
 			if(p.isActive() && p.getStatus()==Pawn.PAWN){
 				if(this.MyBoard!=null){
 					String[] options ={"Hetman","Wieża","Skoczek","Goniec"};
-					int response = JOptionPane.showOptionDialog(null,"Wybierz figurę na którą chcesz zamienić pionek","Zmiana pionka",JOptionPane.OK_OPTION,JOptionPane.PLAIN_MESSAGE,null,options,0);
+					int response = JOptionPane.showOptionDialog(null,"Oznacz figurę na którą chcesz zamienić pionek","Zmiana pionka",JOptionPane.OK_OPTION,JOptionPane.PLAIN_MESSAGE,null,options,0);
 					switch(response){
 						case 0:
 							p.setStatus(Pawn.QUEEN);
