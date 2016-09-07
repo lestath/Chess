@@ -72,7 +72,7 @@ public class LoginFrame extends JFrame implements ActionListener {
 		this.InfoLab = new JLabel();
 		this.InfoLab.setPreferredSize(new Dimension(290,40));
 		
-		this.HostLab = new JLabel("Host :");
+		this.HostLab = new JLabel("<html>Host :</html>");
 		this.HostLab.setPreferredSize(dim2);
 		this.Host = new JTextField("localhost");
 		this.Host.setPreferredSize(dim);
@@ -87,7 +87,7 @@ public class LoginFrame extends JFrame implements ActionListener {
 		this.Login = new JTextField();
 		this.Login.setPreferredSize(dim);
 		
-		this.PasswordLab = new JLabel("Hasło :");
+		this.PasswordLab = new JLabel("<html>Hasło :<html>");
 		this.PasswordLab.setPreferredSize(dim2);
 		this.Password = new JPasswordField();
 		this.Password.setPreferredSize(dim);

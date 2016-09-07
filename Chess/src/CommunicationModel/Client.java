@@ -102,22 +102,22 @@ public class Client implements Runnable{
 					switch(this.InPack.getMessage()){
 						case "SUCCESS": // pomyslne połączenie
 							this.Ready = true;
-							this.Frame.setMsg("Połączono z serwerem",Color.GREEN);
+							this.Frame.setMsg("<html>Połączono z serwerem</html>",Color.GREEN);
 							this.Frame.setConnectSucess(true);
 							this.Frame.setOperarionSucess(false);
 						break;
 						case "REG_SUCCESS": //pomyślna rejestracja
-							this.Frame.setMsg("Pomyślnie zarejestrowano",Color.GREEN);
+							this.Frame.setMsg("<html>Pomyślnie zarejestrowano</html>",Color.GREEN);
 							this.Frame.setConnectSucess(true);
 							this.Frame.setOperarionSucess(false);
 						break;
 						case "REG_FAILED": //błąd rejestracji
-							this.Frame.setMsg("Błąd rejestracji - spróbuj ponownie",Color.RED);
+							this.Frame.setMsg("<html>Błąd rejestracji - spróbuj ponownie</html>",Color.RED);
 							this.Frame.setConnectSucess(true);
 							this.Frame.setOperarionSucess(false);
 						break;
 						case "LOG_FAILED": //błąd logowania
-							this.Frame.setMsg("Błąd logowania - spróbuj ponownie",Color.RED);
+							this.Frame.setMsg("<html>Błąd logowania - spróbuj ponownie</html>",Color.RED);
 							this.Frame.setConnectSucess(true);
 							this.Frame.setOperarionSucess(false);
 						break;
@@ -133,7 +133,7 @@ public class Client implements Runnable{
 						case "TABLE_CLOSED": //zamknięcie stołu
 							if(this.PlayerPanel!=null){
 								if(this.PlayerPanel.getSidePanel()!=null){
-									this.PlayerPanel.setMsg("Zamknięto stół",Color.GREEN);
+									this.PlayerPanel.setMsg("<html>Zamknięto stół</html>",Color.GREEN);
 									this.PlayerPanel.getSidePanel().setGameStarted(false);
 									this.PlayerPanel.getSidePanel().setGameState((byte)0);
 									this.PlayerPanel.getOponentLab().setText("");
@@ -163,7 +163,7 @@ public class Client implements Runnable{
 							if(this.PlayerPanel!=null){
 								if(this.PlayerPanel.getSidePanel()!=null){
 									this.PlayerPanel.getSidePanel().showTables(this.InPack.getPlayers()); // przekazanie pakietu z dostępnymi stołami do panelu graficznego
-									this.PlayerPanel.setMsg("Dostępne stoły",Color.WHITE);
+									this.PlayerPanel.setMsg("<html>Dostępne stoły</html>",Color.WHITE);
 								}
 							}
 						break;
@@ -179,14 +179,14 @@ public class Client implements Runnable{
 						break;
 						case "OPONENT_SELECT_FAILED" : // wiadomość o niepowodzeniu wybrania przeciwnika
 							if(this.PlayerPanel!=null){
-									this.PlayerPanel.setMsg("Akcja nie powiodła się - spróbuj ponownie, lub wybierz kogoś innego",Color.RED);
+									this.PlayerPanel.setMsg("<html>Akcja nie powiodła się - spróbuj ponownie, lub wybierz kogoś innego</html>",Color.RED);
 									this.PlayerPanel.setBtnsAct(t,t,t,t,f,f,t,f,t,f);
 							}
 						break;
 						case "START_GAME" : // gra rozpoczyna się a wybierającym jest ten klient
 							if(this.PlayerPanel!=null){
 								if(this.PlayerPanel.getSidePanel()!=null){
-									this.PlayerPanel.setMsg("Wybrałeś gracza- Gra rozpoczyna się",Color.GREEN);
+									this.PlayerPanel.setMsg("<html>Wybrałeś gracza- Gra rozpoczyna się</html>",Color.GREEN);
 									if(!this.PlayerPanel.getSidePanel().isInvertedFlag()){
 										this.PlayerPanel.getSidePanel().invertBoard();
 									}
@@ -194,7 +194,7 @@ public class Client implements Runnable{
 								this.PlayerPanel.setBtnsAct(f,f,f,f,t,t,t,t,f,f);
 								this.PlayerPanel.getSidePanel().startGame(this.InPack.getColor());
 								String mycolor = "Czarny";
-								this.PlayerPanel.getColorLab().setText("Mój kolor : "+mycolor);
+								this.PlayerPanel.getColorLab().setText("<html>Mój kolor : "+mycolor+"</html>");
 								Pack nickpack = new Pack("MY_NAME_IS");
 								nickpack.setNick(this.MyPlayer.getNick());
 								this.sendPack(nickpack);	
@@ -203,14 +203,14 @@ public class Client implements Runnable{
 						case "OPONENT_CHOSE_YOU" : // gra rozpoczyna się a ten klient oczekiwał z założonym stołem
 							if(this.PlayerPanel!=null){
 								if(this.PlayerPanel.getSidePanel()!=null){
-									this.PlayerPanel.setMsg("Gra rozpoczyna się",Color.GREEN);
+									this.PlayerPanel.setMsg("<html>Gra rozpoczyna się</html>",Color.GREEN);
 									if(this.PlayerPanel.getSidePanel().isInvertedFlag()){
 										this.PlayerPanel.getSidePanel().invertBoard();
 									}
 									this.PlayerPanel.setBtnsAct(f,f,f,f,t,t,t,t,f,f);
 									this.PlayerPanel.getSidePanel().startGame(this.InPack.getColor());
 									String mycolor = "Biały";
-									this.PlayerPanel.getColorLab().setText("Mój kolor : "+mycolor);
+									this.PlayerPanel.getColorLab().setText("<html>Mój kolor : "+mycolor+"</html>");
 									Pack nickpack = new Pack("MY_NAME_IS");
 									nickpack.setNick(this.MyPlayer.getNick());
 									this.sendPack(nickpack);								}
@@ -218,13 +218,13 @@ public class Client implements Runnable{
 						break;
 						case "MY_NAME_IS" : // wiadomosc od przeciwnika (przedstawienie się)
 							if(this.PlayerPanel!=null){
-								this.PlayerPanel.getOponentLab().setText("Przeciwnik : "+this.InPack.getNick());
+								this.PlayerPanel.getOponentLab().setText("<html>Przeciwnik : "+this.InPack.getNick()+"</html>");
 							}
 						break;
 						case "OPONENT_EXITED"  : // przeciwnik z którym gram odszedł
 							if(this.PlayerPanel!=null){
 								if(this.PlayerPanel.getSidePanel()!=null){
-									this.PlayerPanel.setMsg("Przeciwnik odchodzi Wygrywasz Walkowerem",Color.WHITE);
+									this.PlayerPanel.setMsg("<html>Przeciwnik odchodzi Wygrywasz Walkowerem</html>",Color.WHITE);
 									this.PlayerPanel.getSidePanel().setGameStarted(false);
 									this.PlayerPanel.getSidePanel().setGameState((byte)0);
 									this.PlayerPanel.getSidePanel().repaint();
@@ -244,7 +244,7 @@ public class Client implements Runnable{
 								if(this.InPack.getCheck() == Pack.CHECK){
 									this.PlayerPanel.setMsg("Szach",Color.GREEN);
 								}else if(this.InPack.getCheck() == Pack.MATE){ // jeżeli wygrana
-									this.PlayerPanel.setMsg("Szach mat Wygrałeś",Color.GREEN);
+									this.PlayerPanel.setMsg("<html>Szach mat Wygrałeś</html>",Color.GREEN);
 									this.PlayerPanel.getSidePanel().getMyBoard().lockAllPawns();
 									this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t,f,t,f);
 									this.PlayerPanel.getOponentLab().setText("");
@@ -257,11 +257,11 @@ public class Client implements Runnable{
 								}else if(this.InPack.getCheck()==Pack.DRAW_NO){ // jeżeli przeciwnik odrzucił propozycję remisu
 									if(this.PlayerPanel!=null){
 											this.PlayerPanel.setBtnsAct(f,f,f,f,t,t,t,t,f,f);
-											this.PlayerPanel.setMsg("Przeciwnik odrzucił propozycję remisu",Color.RED);
+											this.PlayerPanel.setMsg("<html>Przeciwnik odrzucił propozycję remisu</html>",Color.RED);
 									}
 								}else if(this.InPack.getCheck()==Pack.DRAW_YES){
 									if(this.PlayerPanel!=null){
-										this.PlayerPanel.setMsg("Gra zakończona remisem",Color.GREEN);
+										this.PlayerPanel.setMsg("<html>Gra zakończona remisem</html>",Color.GREEN);
 										this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t,f,t,f);
 										this.PlayerPanel.getOponentLab().setText("");
 										this.PlayerPanel.getColorLab().setText("");
@@ -280,7 +280,7 @@ public class Client implements Runnable{
 											this.PlayerPanel.getBackMoveBtn().setEnabled(true);
 											if(this.PlayerPanel.getSidePanel().getMyBoard().checkCheck()){
 												if(this.PlayerPanel.getSidePanel().getMyBoard().checkMate()){ // jeżeli przegrana
-													this.PlayerPanel.setMsg("Szach Mat Przegrałeś",Color.RED);
+													this.PlayerPanel.setMsg("<html>Szach Mat Przegrałeś</html>",Color.RED);
 													pck = new Pack("MAKE_MOVE");
 													pck.setCheck(Pack.MATE);
 													this.PlayerPanel.getSidePanel().getMyBoard().lockAllPawns();
@@ -308,7 +308,7 @@ public class Client implements Runnable{
 									swappawn=this.PlayerPanel.getSidePanel().getMyBoard().getPawnById(this.InPack.getPawnId());
 									swappawn.setStatus(this.InPack.getStatus());
 									this.PlayerPanel.getSidePanel().repaint();
-									this.PlayerPanel.setMsg("Przeciwnik zamienił pionek",Color.WHITE);
+									this.PlayerPanel.setMsg("<html>Przeciwnik zamienił pionek</html>",Color.WHITE);
 								}
 							}
 						  }
@@ -316,7 +316,7 @@ public class Client implements Runnable{
 						case "GAME_SAVED" :
 							  if(this.PlayerPanel!=null){
 									if(this.PlayerPanel.getSidePanel()!=null){
-											this.PlayerPanel.setMsg("Zapisano grę",Color.WHITE);
+											this.PlayerPanel.setMsg("<html>Zapisano grę</html>",Color.WHITE);
 											//TODO decyzja co po zapisaniu gry okienko wychodzę lub gramy dalej
 									}
 								  }
@@ -328,7 +328,7 @@ public class Client implements Runnable{
 							  if(this.PlayerPanel!=null){
 									if(this.PlayerPanel.getSidePanel()!=null){
 										    this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t,f,t,f);
-											this.PlayerPanel.setMsg("Gracz "+this.InPack.getPlayer().getNick()+" odmówił wczytania gry",Color.RED);
+											this.PlayerPanel.setMsg("<html>Gracz "+this.InPack.getPlayer().getNick()+" odmówił wczytania gry</html>",Color.RED);
 									}
 								  }
 						break;
@@ -343,7 +343,7 @@ public class Client implements Runnable{
 						break;
 						case "BACK_MOVE_Y": // otrzymanie zgoda na cofnięcie ruchu
 							 if(this.PlayerPanel!=null){
-								 this.PlayerPanel.setMsg("Przeciwnik wyraził zgodę na cofnięcie ruchu",Color.GREEN);
+								 this.PlayerPanel.setMsg("</html>Przeciwnik wyraził zgodę na cofnięcie ruchu</html>",Color.GREEN);
 								 if(this.PlayerPanel.getSidePanel()!=null){
 									 this.PlayerPanel.getSidePanel().backMove();
 									 this.PlayerPanel.getBackMoveBtn().setEnabled(false);
@@ -352,7 +352,7 @@ public class Client implements Runnable{
 						break;
 						case "BACK_MOVE_N": // otrzymanie odmowy cofnięcia ruchu
 							 if(this.PlayerPanel!=null){
-								 this.PlayerPanel.setMsg("Przeciwnik odmówił cofnięcia ruchu",Color.RED);
+								 this.PlayerPanel.setMsg("<html>Przeciwnik odmówił cofnięcia ruchu</html>",Color.RED);
 								 this.PlayerPanel.getBackMoveBtn().setEnabled(false);
 							 }
 						break;
@@ -360,9 +360,9 @@ public class Client implements Runnable{
 				}
 				this.InPack = null;
 			}
-			System.out.println("Klient_odszedł");
+			System.out.println("<html>Klient_odszedł</html>");
 		} catch (IOException | ClassNotFoundException e) {
-			this.Frame.setMsg("Błąd Połączenia",Color.RED);
+			this.Frame.setMsg("<html>Błąd Połączenia</html>",Color.RED);
 			this.Frame.setOperarionSucess(true);
 			this.Frame.setConnectSucess(false);
 			this.Running = false;

@@ -169,7 +169,7 @@ public class Board implements Serializable{
 					p.setMoveCounter(p.getMoveCounter()+1);
 					this.resetTab(this.LogicBoard);
 					this.MyMove = false;
-					this.Graph.getFrame().getMoveLab().setText("<< Ruch przeciwnika >>");
+					this.Graph.getFrame().getMoveLab().setText("</html><< Ruch przeciwnika >></html>");
 					return true;
 				}
 			}
@@ -204,7 +204,7 @@ public class Board implements Serializable{
 				enemy.setY(y);
 				this.MyBoard[enemy.getX()][enemy.getY()] = enemy;
 				this.MyMove = true;
-				this.Graph.getFrame().getMoveLab().setText("<< Twój ruch >>");
+				this.Graph.getFrame().getMoveLab().setText("<html><< Twój ruch >></html>");
 				
 			}
 			this.Graph.repaint();
@@ -226,10 +226,10 @@ public class Board implements Serializable{
 									this.MyBoard[i][j]=null;
 									if(this.MyMove==false){
 										this.MyMove = true;
-										this.Graph.getFrame().getMoveLab().setText("<< Twój ruch >>");
+										this.Graph.getFrame().getMoveLab().setText("<html><< Twój ruch >></html>");
 									}else{
 										this.MyMove = false;
-										this.Graph.getFrame().getMoveLab().setText("<< Ruch przeciwnika >>");
+										this.Graph.getFrame().getMoveLab().setText("<html><< Ruch przeciwnika >></html>");
 									}
 									return;
 								}

@@ -280,10 +280,10 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 					pck.setPlayer(p);
 					if(this.SidePanel.getSavesTab().getModel().getValueAt(row,1).toString().equals("dostępny")){
 						this.myClient.sendPack(pck);
-						this.setMsg("Wysłano prośbę o wczytanie gry do gracza : "+pck.getPlayer().getNick(),Color.WHITE);
+						this.setMsg("<html>Wysłano prośbę o wczytanie gry do gracza : </html>"+pck.getPlayer().getNick(),Color.WHITE);
 					}else{
 						this.setBtnsAct(t,t,t,t,f,f,t,f,t,f);
-						this.setMsg("Gracz : "+pck.getPlayer().getNick()+" jest teraz niedostępny",Color.WHITE);
+						this.setMsg("<html>Gracz : "+pck.getPlayer().getNick()+" jest teraz niedostępny</html>",Color.WHITE);
 					}
 					p = null;
 					pck = null;
@@ -297,7 +297,7 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 			this.myClient.sendPack(pck);
 		}else if(obj==this.DrawProposeBtn){
 			this.setBtnsAct(f,f,f,f,f,t,t,f,f,f);
-			setMsg("Zaproponowałeś remis",Color.WHITE);
+			setMsg("<html>Zaproponowałeś remis</html>",Color.WHITE);
 			pck = new Pack("MAKE_MOVE");
 			pck.setCheck(Pack.DRAW_PROPOSE);
 			this.myClient.sendPack(pck);
@@ -313,7 +313,7 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 			}
 		}else if(obj == this.BackMoveBtn){
 			pck = new Pack("BACK_MOVE_Q"); // wygenerowanie i wysłanie prośby o cofnięcie ruchu
-			this.setMsg("Wysłałeś prośbę o cofnięcie ruchu",Color.WHITE);
+			this.setMsg("<html>Wysłałeś prośbę o cofnięcie ruchu</html>",Color.WHITE);
 			this.myClient.sendPack(pck);
 		}
 	}
@@ -362,7 +362,7 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
                 "Choose", 
                 JOptionPane.YES_NO_OPTION); 
 			if (selectedOption == JOptionPane.YES_OPTION) {
-				setMsg("zaakceptowałeś remis koniec gry",Color.WHITE);
+				setMsg("<html>zaakceptowałeś remis koniec gry</html>",Color.WHITE);
 				this.getOponentLab().setText("");
 				this.getColorLab().setText("");
 				this.getMoveLab().setText("");
@@ -379,7 +379,7 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
 					}
 				}
 			}else if(selectedOption == JOptionPane.NO_OPTION){
-				setMsg("Odrzuciłeś propozycję remisu remis",Color.WHITE);
+				setMsg("<html>Odrzuciłeś propozycję remisu remis</html>",Color.WHITE);
 				p = new Pack("MAKE_MOVE");
 				p.setCheck(Pack.DRAW_NO);
 				this.myClient.sendPack(p);
@@ -404,11 +404,11 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
                 JOptionPane.YES_NO_OPTION); 
 			if (selectedOption == JOptionPane.YES_OPTION) {
 				this.setBtnsAct(f,f,f,t,t,t,t,t,f,f);
-				setMsg("zaakceptowałeś wczytanie gry",Color.WHITE);
+				setMsg("<html>zaakceptowałeś wczytanie gry</html>",Color.WHITE);
 				pack.setMessage("UPLOAD_GAME");
 				this.myClient.sendPack(pack);
 			}else if(selectedOption == JOptionPane.NO_OPTION){
-				setMsg("Odrzuciłeś propozycję kontynuowania gry",Color.WHITE);
+				setMsg("<html>Odrzuciłeś propozycję kontynuowania gry</html>",Color.WHITE);
 				pack.setMessage("NO_UPLOAD");
 				this.myClient.sendPack(pack);
 			}
@@ -423,12 +423,12 @@ public class GameFrame extends JFrame implements Runnable, ActionListener {
                 "Choose", 
                 JOptionPane.YES_NO_OPTION); 
 			if (selectedOption == JOptionPane.YES_OPTION) {
-				setMsg("Zgodziłeś się na cofnięcie ruchu",Color.WHITE);
+				setMsg("<html>Zgodziłeś się na cofnięcie ruchu</html>",Color.WHITE);
 				pack.setMessage("BACK_MOVE_Y"); 
 				this.myClient.sendPack(pack);
 				this.SidePanel.backMove();
 			}else if(selectedOption == JOptionPane.NO_OPTION){
-				setMsg("Odrzuciłeś prośbę o cofnięcie ruchu",Color.WHITE);
+				setMsg("<html>Odrzuciłeś prośbę o cofnięcie ruchu</html>",Color.WHITE);
 				pack.setMessage("BACK_MOVE_N");
 				this.myClient.sendPack(pack);
 			}
