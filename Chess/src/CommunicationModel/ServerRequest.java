@@ -264,7 +264,7 @@ public class ServerRequest extends Thread {
 		if(OponentID<50 && OponentID>-1){
 			this.saveGameResults(ServerRequest.END_CONTEXT_WALKOVER);
 			pack = new Pack("OPONENT_EXITED");
-			if(this.Serv.getClientsThr()[this.OponentID]!=null){
+			if(this.Serv.getClientsThr()[this.OponentID]!=null && this.Serv.getClientsThr()[this.OponentID].getOponentID()>-1){
 				this.Serv.getClientsThr()[this.OponentID].setOponentID(-1);
 				this.Serv.getClientsThr()[this.OponentID].sentPack(pack);
 			}

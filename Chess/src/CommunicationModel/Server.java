@@ -93,7 +93,6 @@ public class Server implements Runnable{
 	public void run(){
 		// TODO Auto-generated method stub
 		try {
-			int j=0;
 			this.Sck = new ServerSocket(this.Port);
 			System.out.println("Serwer nasłuch na porcie : "+this.Port);
 			while(Accept){
@@ -108,8 +107,6 @@ public class Server implements Runnable{
 						 break;
 					 }
 				 }
-				 if(j==1)break;
-				 j++;
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -318,7 +315,7 @@ public class Server implements Runnable{
 
 	
 	
-	/*
+	
 	public static void main(String[] args){
 		int port;
 		try{
@@ -332,7 +329,5 @@ public class Server implements Runnable{
 			 pe.printStackTrace();
 		}
 	}
-	
-  	*/
 	
 }

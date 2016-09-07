@@ -180,7 +180,7 @@ public class Client implements Runnable{
 						case "OPONENT_SELECT_FAILED" : // wiadomość o niepowodzeniu wybrania przeciwnika
 							if(this.PlayerPanel!=null){
 									this.PlayerPanel.setMsg("Akcja nie powiodła się - spróbuj ponownie, lub wybierz kogoś innego",Color.RED);
-									this.PlayerPanel.setBtnsAct(t,t,t,t,f,f,t,f,t);
+									this.PlayerPanel.setBtnsAct(t,t,t,t,f,f,t,f,t,f);
 							}
 						break;
 						case "START_GAME" : // gra rozpoczyna się a wybierającym jest ten klient
@@ -191,7 +191,7 @@ public class Client implements Runnable{
 										this.PlayerPanel.getSidePanel().invertBoard();
 									}
 								}
-								this.PlayerPanel.setBtnsAct(f,f,f,f,t,t,t,t,f);
+								this.PlayerPanel.setBtnsAct(f,f,f,f,t,t,t,t,f,f);
 								this.PlayerPanel.getSidePanel().startGame(this.InPack.getColor());
 								String mycolor = "Czarny";
 								this.PlayerPanel.getColorLab().setText("Mój kolor : "+mycolor);
@@ -207,7 +207,7 @@ public class Client implements Runnable{
 									if(this.PlayerPanel.getSidePanel().isInvertedFlag()){
 										this.PlayerPanel.getSidePanel().invertBoard();
 									}
-									this.PlayerPanel.setBtnsAct(f,f,f,f,t,t,t,t,f);
+									this.PlayerPanel.setBtnsAct(f,f,f,f,t,t,t,t,f,f);
 									this.PlayerPanel.getSidePanel().startGame(this.InPack.getColor());
 									String mycolor = "Biały";
 									this.PlayerPanel.getColorLab().setText("Mój kolor : "+mycolor);
@@ -228,7 +228,7 @@ public class Client implements Runnable{
 									this.PlayerPanel.getSidePanel().setGameStarted(false);
 									this.PlayerPanel.getSidePanel().setGameState((byte)0);
 									this.PlayerPanel.getSidePanel().repaint();
-									this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t,f,t);
+									this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t,f,t,f);
 									this.PlayerPanel.getOponentLab().setText("");
 									this.PlayerPanel.getColorLab().setText("");
 									this.PlayerPanel.getMoveLab().setText("");
@@ -246,7 +246,7 @@ public class Client implements Runnable{
 								}else if(this.InPack.getCheck() == Pack.MATE){ // jeżeli wygrana
 									this.PlayerPanel.setMsg("Szach mat Wygrałeś",Color.GREEN);
 									this.PlayerPanel.getSidePanel().getMyBoard().lockAllPawns();
-									this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t,f,t);
+									this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t,f,t,f);
 									this.PlayerPanel.getOponentLab().setText("");
 									this.PlayerPanel.getColorLab().setText("");
 									this.PlayerPanel.getMoveLab().setText("");
@@ -256,13 +256,13 @@ public class Client implements Runnable{
 									}
 								}else if(this.InPack.getCheck()==Pack.DRAW_NO){ // jeżeli przeciwnik odrzucił propozycję remisu
 									if(this.PlayerPanel!=null){
-											this.PlayerPanel.setBtnsAct(f,f,f,f,t,t,t,t,f);
+											this.PlayerPanel.setBtnsAct(f,f,f,f,t,t,t,t,f,f);
 											this.PlayerPanel.setMsg("Przeciwnik odrzucił propozycję remisu",Color.RED);
 									}
 								}else if(this.InPack.getCheck()==Pack.DRAW_YES){
 									if(this.PlayerPanel!=null){
 										this.PlayerPanel.setMsg("Gra zakończona remisem",Color.GREEN);
-										this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t,f,t);
+										this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t,f,t,f);
 										this.PlayerPanel.getOponentLab().setText("");
 										this.PlayerPanel.getColorLab().setText("");
 										this.PlayerPanel.getMoveLab().setText("");
@@ -277,13 +277,14 @@ public class Client implements Runnable{
 										if(this.PlayerPanel.getSidePanel().getMyBoard()!=null){
 											this.PlayerPanel.getSidePanel().getMyBoard().unlockAllPawns();
 											this.PlayerPanel.getSidePanel().getMyBoard().makeOponentMove(this.InPack.getPawnId(),this.InPack.getX(),this.InPack.getY());
+											this.PlayerPanel.getBackMoveBtn().setEnabled(true);
 											if(this.PlayerPanel.getSidePanel().getMyBoard().checkCheck()){
 												if(this.PlayerPanel.getSidePanel().getMyBoard().checkMate()){ // jeżeli przegrana
 													this.PlayerPanel.setMsg("Szach Mat Przegrałeś",Color.RED);
 													pck = new Pack("MAKE_MOVE");
 													pck.setCheck(Pack.MATE);
 													this.PlayerPanel.getSidePanel().getMyBoard().lockAllPawns();
-													this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t,f,t);
+													this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t,f,t,f);
 													this.PlayerPanel.getOponentLab().setText("");
 													this.PlayerPanel.getColorLab().setText("");
 													this.PlayerPanel.getMoveLab().setText("");
@@ -326,13 +327,34 @@ public class Client implements Runnable{
 						case "NO_UPLOAD": // otrzymanie odmowy wczytania gry
 							  if(this.PlayerPanel!=null){
 									if(this.PlayerPanel.getSidePanel()!=null){
-										    this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t,f,t);
+										    this.PlayerPanel.setBtnsAct(t,t,t,f,f,f,t,f,t,f);
 											this.PlayerPanel.setMsg("Gracz "+this.InPack.getPlayer().getNick()+" odmówił wczytania gry",Color.RED);
 									}
 								  }
 						break;
 						case "UPLOAD_GAME": // otrzymanie zezwolenia na wczytanie gry
 							this.PlayerPanel.getSidePanel().uploadGame(this.InPack.getSaves()[0],this.InPack.getPlayers());
+						break;
+						case "BACK_MOVE_Q": // zapytanie o cofnięcie ruchu
+							 if(this.PlayerPanel!=null){
+								 this.PlayerPanel.drawAskForBakMoveWindow();
+								 this.PlayerPanel.getBackMoveBtn().setEnabled(false);
+							 }
+						break;
+						case "BACK_MOVE_Y": // otrzymanie zgoda na cofnięcie ruchu
+							 if(this.PlayerPanel!=null){
+								 this.PlayerPanel.setMsg("Przeciwnik wyraził zgodę na cofnięcie ruchu",Color.GREEN);
+								 if(this.PlayerPanel.getSidePanel()!=null){
+									 this.PlayerPanel.getSidePanel().backMove();
+									 this.PlayerPanel.getBackMoveBtn().setEnabled(false);
+								 }
+							 }
+						break;
+						case "BACK_MOVE_N": // otrzymanie odmowy cofnięcia ruchu
+							 if(this.PlayerPanel!=null){
+								 this.PlayerPanel.setMsg("Przeciwnik odmówił cofnięcia ruchu",Color.RED);
+								 this.PlayerPanel.getBackMoveBtn().setEnabled(false);
+							 }
 						break;
 					}
 				}

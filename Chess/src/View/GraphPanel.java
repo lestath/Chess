@@ -59,6 +59,7 @@ public class GraphPanel extends JPanel implements MouseListener {
 	private boolean Move;// ruch po wczytaniu
 
 
+
 	
 	public GraphPanel(int w, int h, GameFrame frm){
 		this.Frame = frm;
@@ -297,6 +298,9 @@ public class GraphPanel extends JPanel implements MouseListener {
 		this.repaint();
 	}
 
+	/**
+	 * Komponent graficzny (płótno, na którym odbywa się rysowanie planszy, rankingów etc.)
+	 */
 	protected void paintComponent(Graphics g){
 		Graphics2D g2d = (Graphics2D)g;
 		if(GameState == 2){
@@ -388,6 +392,14 @@ public class GraphPanel extends JPanel implements MouseListener {
 		
 	}
 	
+	/**
+	 * Metoda cofająca poprzedni ruch
+	 */
+	public void backMove(){
+		if(this.MyBoard!=null){
+			this.MyBoard.backMove();
+		}
+	}
 	
 	
 	public boolean isGameStarted() {
@@ -471,6 +483,7 @@ public class GraphPanel extends JPanel implements MouseListener {
 					pck.setPawnId(this.SelectedPawn.getId());
 					pck.setX(this.SelectedPawn.getX());
 					pck.setY(this.SelectedPawn.getY());
+					this.Frame.getBackMoveBtn().setEnabled(true);
 					this.Frame.getMyClient().sendPack(pck);
 					if(this.SelectedPawn.getStatus()==Pawn.PAWN && this.SelectedPawn.getY()==0){
 						this.swapPawn(this.SelectedPawn);
@@ -575,7 +588,7 @@ public class GraphPanel extends JPanel implements MouseListener {
 		//TODO męczarnia z wczytankiem :(
 		boolean t = true;
 		boolean f= false;
-		this.Frame.setBtnsAct(f,f,f,f,t,t,t,t,f);
+		this.Frame.setBtnsAct(f,f,f,f,t,t,t,t,f,f);
 		this.GameState=2;
 		String opnick = play[0].getNick();// nick przeciwnika
 		String mynick =play[1].getNick();

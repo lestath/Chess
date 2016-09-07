@@ -92,7 +92,7 @@ public class Pack implements Serializable{
 			this.players=null;
 			return;
 		}
-		this.players = new Player[50];
+		this.players = new Player[100];
 		for(int i=0;i<players.length;i++){
 			this.players[i]=players[i];
 		}

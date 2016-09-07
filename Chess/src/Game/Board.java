@@ -35,8 +35,10 @@ public class Board implements Serializable{
 		private int Context; // pole kontekstu sprawdzania ruchu pionka 0 zwykły 1 w kontekście mata
 		private boolean Lock; // zamek zapobiegający przejściu w rekurencję przy sprawdzaniu ruchów pionka
 		private boolean MyMove; // flaga oznaczona na true oznacza ruch gracza
+		private Pawn PrevMove; // pole rejestrujące ostatni ruch wykorzystywane przy cofnięciu ruchu 
 		
 		public Board(GraphPanel graph,int colorflag,boolean mymove){
+			this.PrevMove = new Pawn(-10,-10,-10,-10,-10);
 			this.MyColor=colorflag;
 			this.Graph=graph;
 			this.MyBoard = new Pawn[8][8];
@@ -110,7 +112,6 @@ public class Board implements Serializable{
 				this.MyBoard[6][7] = new Pawn(30,Pawn.HORSE,Pawn.BLACK,6,7);
 				this.MyBoard[7][7] = new Pawn(31,Pawn.ROCK,Pawn.BLACK,7,7);
 			}	
-
 		}
 		/**
 		 * Metoda sprawdza kliknięcie przekazane z panelu graficznego
@@ -134,6 +135,8 @@ public class Board implements Serializable{
 			return null;
 		}
 		
+		
+		
 		/**
 		 * Metoda wykonująca dozwolony ruch pionka na wybraną pozycję 
 		 * Metoda przlicza współrzędne Graficzne na logiczne wewnątrz
@@ -149,6 +152,7 @@ public class Board implements Serializable{
 				if(this.MyBoard[lx][ly].getStatus()==Pawn.KING)return false;
 			}
 			if(lx>=0 && lx<=8 && ly>=0 && ly<8){
+				this.registerPawnMove(p); 
 				if(this.LogicBoard[lx][ly]==GraphPanel.GREEN_DOT || this.LogicBoard[lx][ly]==GraphPanel.RED_DOT){
 					if(this.LogicBoard[lx][ly]==GraphPanel.RED_DOT){
 						this.MyBoard[lx][ly].setActive(false);
@@ -194,6 +198,7 @@ public class Board implements Serializable{
 					this.MyBoard[x][y].setX(-1);
 					this.MyBoard[x][y].setY(-1);
 				}
+				this.registerPawnMove(enemy); // utrwalamy poprzednią pozycję pionka
 				this.MyBoard[enemy.getX()][enemy.getY()] = null;
 				enemy.setX(x);
 				enemy.setY(y);
@@ -203,6 +208,48 @@ public class Board implements Serializable{
 				
 			}
 			this.Graph.repaint();
+		}
+		
+		/**
+		 * Metoda cofająca ruch
+		 */
+		public void backMove(){
+			if(this.PrevMove.getId()!=-10){
+				for(int i=0;i<8;i++){
+					for(int j=0;j<8;j++){
+						if(this.MyBoard!=null){
+							if(this.MyBoard[i][j]!=null){
+								if(this.MyBoard[i][j].getId()==PrevMove.getId()){
+									this.MyBoard[i][j].setX(this.PrevMove.getX());
+									this.MyBoard[i][j].setY(this.PrevMove.getY());
+									this.MyBoard[this.PrevMove.getX()][this.PrevMove.getY()]=this.MyBoard[i][j];
+									this.MyBoard[i][j]=null;
+									if(this.MyMove==false){
+										this.MyMove = true;
+										this.Graph.getFrame().getMoveLab().setText("<< Twój ruch >>");
+									}else{
+										this.MyMove = false;
+										this.Graph.getFrame().getMoveLab().setText("<< Ruch przeciwnika >>");
+									}
+									return;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		/**
+		 * Metoda utrwala poprzedniąpozycję pionka zanim ten wykona ruch
+		 * Dane zapisane przez nią przydatne są przy cofnięciu ruchu
+		 * @param p 
+		 * 			Pionek do utrwalenia
+		 */
+		private void registerPawnMove(Pawn p){
+			this.PrevMove.setId(p.getId());
+			this.PrevMove.setX(p.getX());
+			this.PrevMove.setY(p.getY());
 		}
 		
 		/**
