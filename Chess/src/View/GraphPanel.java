@@ -380,10 +380,10 @@ public class GraphPanel extends JPanel implements MouseListener {
 	public void startGame(int bottom){
 		boolean mymove = false;
 		if(bottom == Board.WHITE_ON_BOTTOM){
-			this.Frame.getMoveLab().setText("<html><< Twój ruch >></html>");
+			this.Frame.getMoveLab().setText("<< Twój ruch >>");
 			mymove = true;
 		}else{
-			this.Frame.getMoveLab().setText("<html><< Ruch przeciwnika >></html>");
+			this.Frame.getMoveLab().setText("<< Ruch przeciwnika >>");
 		}
 		this.MyBoard = new Board(this,bottom,mymove);
 		this.prepareTableToGame();
@@ -506,7 +506,7 @@ public class GraphPanel extends JPanel implements MouseListener {
 			if(p.isActive() && p.getStatus()==Pawn.PAWN){
 				if(this.MyBoard!=null){
 					String[] options ={"Hetman","Wieża","Skoczek","Goniec"};
-					int response = JOptionPane.showOptionDialog(null,"Wybierz figurę na którą chcesz zamienić pionek","Zmiana pionka",JOptionPane.OK_OPTION,JOptionPane.PLAIN_MESSAGE,null,options,0);
+					int response = JOptionPane.showOptionDialog(null,"Wybież figurę na którą chcesz zamienić pionek","Zmiana pionka",JOptionPane.OK_OPTION,JOptionPane.PLAIN_MESSAGE,null,options,0);
 					switch(response){
 						case 0:
 							p.setStatus(Pawn.QUEEN);
@@ -643,16 +643,16 @@ public class GraphPanel extends JPanel implements MouseListener {
 	    		this.invertBoard();
 	    	}	    
 	    	
-			this.Frame.getOponentLab().setText("<html>Przeciwnik : "+opnick+"</html>");
+			this.Frame.getOponentLab().setText("Przeciwnik : "+opnick);
 			if(this.Kolor==Pawn.WHITE){
-				this.Frame.getColorLab().setText("<html>Biały</html>");
+				this.Frame.getColorLab().setText("Biały");
 			}else{
-				this.Frame.getColorLab().setText("<html>Czarny</html>");
+				this.Frame.getColorLab().setText("Czarny");
 			}
 			if(this.Move){
-				this.Frame.getMoveLab().setText("<html><< Twój ruch >></html>");
+				this.Frame.getMoveLab().setText("<< Twój ruch >>");
 			}else{
-				this.Frame.getMoveLab().setText("<html><< Ruch przeciwnika >></html>");
+				this.Frame.getMoveLab().setText("<< Ruch przeciwnika >>");
 			}
 		this.prepareTableToGame();
 		this.GameStarted = true;
